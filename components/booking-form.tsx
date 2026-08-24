@@ -3,15 +3,9 @@
 import { createAppointment, getBookedTimes } from "@/app/actions/appointments"
 import { DayPicker } from "@/components/day-picker"
 import { TIME_SLOTS } from "@/lib/time-slots"
+import { SERVICES, formatUYU } from "@/lib/services"
+import { useRouter } from "next/navigation"
 import { useEffect, useRef, useState, useTransition } from "react"
-
-const SERVICES = [
-  "Nails",
-  "Pedicura",
-  "Depilación",
-  "Masajes descontracturantes",
-  "Cosmetología",
-]
 
 const inputClass =
   "w-full rounded-md border border-input bg-card px-4 py-3 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
@@ -26,6 +20,7 @@ function formatSelected(key: string) {
 }
 
 export function BookingForm() {
+  const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [isLoadingTimes, setIsLoadingTimes] = useState(false)
   const [message, setMessage] = useState<{ ok: boolean; text: string } | null>(
@@ -33,8 +28,12 @@ export function BookingForm() {
   )
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [selectedTime, setSelectedTime] = useState<string | null>(null)
+  const [selectedService, setSelectedService] = useState("")
   const [bookedTimes, setBookedTimes] = useState<string[]>([])
   const formRef = useRef<HTMLFormElement>(null)
+
+  const servicePrice =
+    SERVICES.find((s) => s.name === selectedService)?.price ?? 0
 
   useEffect(() => {
     if (!selectedDate) {
@@ -58,14 +57,8 @@ export function BookingForm() {
     setMessage(null)
     startTransition(async () => {
       const result = await createAppointment(formData)
-      if (result.ok) {
-        setMessage({
-          ok: true,
-          text: "¡Tu turno fue solicitado! Te contactaremos para confirmarlo.",
-        })
-        formRef.current?.reset()
-        setSelectedDate(null)
-        setSelectedTime(null)
+      if (result.ok && result.id) {
+        router.push(`/reservar/${result.id}`)
       } else {
         setMessage({ ok: false, text: result.error ?? "Ocurrió un error." })
       }
@@ -106,16 +99,29 @@ export function BookingForm() {
         <label htmlFor="service" className="mb-2 block text-sm text-foreground">
           Servicio
         </label>
-        <select id="service" name="service" required defaultValue="" className={inputClass}>
+        <select
+          id="service"
+          name="service"
+          required
+          value={selectedService}
+          onChange={(e) => setSelectedService(e.target.value)}
+          className={inputClass}
+        >
           <option value="" disabled>
             Elegí un servicio
           </option>
           {SERVICES.map((s) => (
-            <option key={s} value={s}>
-              {s}
+            <option key={s.name} value={s.name}>
+              {s.name} · {formatUYU(s.price)}
             </option>
           ))}
         </select>
+        {servicePrice > 0 && (
+          <p className="mt-2 text-sm text-muted-foreground">
+            Precio del servicio:{" "}
+            <span className="text-foreground">{formatUYU(servicePrice)}</span>
+          </p>
+        )}
       </div>
 
       <div>
@@ -169,7 +175,7 @@ export function BookingForm() {
         disabled={isPending || !selectedDate || !selectedTime}
         className="w-full rounded-full bg-primary px-8 py-3.5 text-sm tracking-[0.15em] text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60"
       >
-        {isPending ? "ENVIANDO..." : "SOLICITAR TURNO"}
+        {isPending ? "PROCESANDO..." : "CONTINUAR A LA SEÑA"}
       </button>
 
       {message && (

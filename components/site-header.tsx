@@ -31,22 +31,22 @@ export function SiteHeader() {
           </span>
         </Link>
         <nav className="hidden items-center gap-8 text-sm tracking-wide text-foreground md:flex">
-          <a href="#nosotras" className="transition-colors hover:text-primary">
+          <Link href="/#nosotras" className="transition-colors hover:text-primary">
             Nosotras
-          </a>
-          <a href="#servicios" className="transition-colors hover:text-primary">
+          </Link>
+          <Link href="/#servicios" className="transition-colors hover:text-primary">
             Servicios
-          </a>
-          <a href="#agenda" className="transition-colors hover:text-primary">
+          </Link>
+          <Link href="/#agenda" className="transition-colors hover:text-primary">
             Agendar
-          </a>
+          </Link>
         </nav>
-        <a
-          href="#agenda"
+        <Link
+          href="/#agenda"
           className="rounded-full bg-primary px-5 py-2 text-xs tracking-[0.15em] text-primary-foreground transition-opacity hover:opacity-90"
         >
           RESERVAR TURNO
-        </a>
+        </Link>
       </div>
     </header>
   )
