@@ -7,7 +7,7 @@ import {
   updateStatus,
 } from "@/app/actions/appointments"
 import type { Appointment, Staff } from "@/lib/db/schema"
-import { formatServiceLabel, formatUYU } from "@/lib/services"
+import { SERVICE_CATEGORIES, formatServiceLabel, formatUYU } from "@/lib/services"
 import { useState, useTransition } from "react"
 
 const STATUS_OPTIONS = ["pendiente", "confirmado", "pago", "cancelado"]
@@ -31,6 +31,14 @@ function formatDate(value: string) {
   return d.toLocaleDateString("es-UY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })
 }
 
+function getServiceCategory(value: string) {
+  try {
+    return JSON.parse(value).category ?? value
+  } catch {
+    return value
+  }
+}
+
 function formatDateShort(value: string) {
   const [year, month, day] = value.split("-")
   return `${day}/${month}/${year.slice(-2)}`
@@ -44,6 +52,8 @@ export function AdminAppointments({
   staff: Staff[]
 }) {
   const [filter, setFilter] = useState("todos")
+  const [serviceFilter, setServiceFilter] = useState("todos")
+  const [staffFilter, setStaffFilter] = useState("todos")
   const [month, setMonth] = useState("")
   const [paymentAmounts, setPaymentAmounts] = useState<Record<number, number>>(
     () => Object.fromEntries(appointments.map((appointment) => [appointment.id, appointment.paymentReceived || appointment.price])),
@@ -52,6 +62,8 @@ export function AdminAppointments({
 
   const filtered = appointments.filter((a) =>
     (filter === "todos" || a.status === filter) &&
+    (serviceFilter === "todos" || getServiceCategory(a.service) === serviceFilter) &&
+    (staffFilter === "todos" || String(a.staffId ?? "") === staffFilter) &&
     (!month || a.appointmentDate.startsWith(month))
   )
 
@@ -77,20 +89,23 @@ export function AdminAppointments({
         <button type="button" onClick={downloadSummary} className="rounded-full border border-primary/40 px-4 py-2 text-xs text-primary hover:bg-primary/10">DESCARGAR CSV</button>
         <span className="text-sm text-muted-foreground">Ingresos: <strong className="text-foreground">{formatUYU(monthlyIncome)}</strong></span>
       </div>
-      <div className="mb-6 flex flex-wrap gap-2">
-        {["todos", ...STATUS_OPTIONS].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`rounded-full px-4 py-1.5 text-xs capitalize tracking-wide transition-colors ${
-              filter === f
-                ? "bg-primary text-primary-foreground"
-                : "border border-border bg-card text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {f}
-          </button>
-        ))}
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <label className="sr-only" htmlFor="status-filter">Filtrar por estado</label>
+        <select id="status-filter" value={filter} onChange={(event) => setFilter(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
+          <option value="todos">Todos los estados</option>
+          {STATUS_OPTIONS.map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}
+        </select>
+        <label className="sr-only" htmlFor="service-filter">Filtrar por servicio</label>
+        <select id="service-filter" value={serviceFilter} onChange={(event) => setServiceFilter(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
+          <option value="todos">Todos los servicios</option>
+          {SERVICE_CATEGORIES.slice(0, 5).map((category) => <option key={category.name} value={category.name}>{category.name}</option>)}
+        </select>
+        <label className="sr-only" htmlFor="staff-filter">Filtrar por profesional</label>
+        <select id="staff-filter" value={staffFilter} onChange={(event) => setStaffFilter(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
+          <option value="todos">Todo el personal</option>
+          <option value="">Sin asignar</option>
+          {staff.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
+        </select>
       </div>
 
       {filtered.length === 0 ? (
