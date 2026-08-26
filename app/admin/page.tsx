@@ -15,17 +15,6 @@ export default async function AdminPage() {
     getStaff(),
   ])
 
-  const pendientes = appointments.filter((a) => a.status === "pendiente").length
-  const confirmados = appointments.filter(
-    (a) => a.status === "confirmado",
-  ).length
-
-  const stats = [
-    { label: "Total de turnos", value: appointments.length },
-    { label: "Pendientes", value: pendientes },
-    { label: "Confirmados", value: confirmados },
-  ]
-
   return (
     <main className="min-h-screen bg-background">
       <div className="mx-auto max-w-6xl px-6 py-12">
@@ -44,20 +33,6 @@ export default async function AdminPage() {
           >
             VOLVER AL SITIO
           </Link>
-        </div>
-
-        <div className="mb-10 grid gap-4 sm:grid-cols-3">
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              className="rounded-xl border border-border bg-card/60 p-6"
-            >
-              <p className="text-4xl font-light text-primary tabular-nums">
-                {s.value}
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
-            </div>
-          ))}
         </div>
 
         <AdminTabs
