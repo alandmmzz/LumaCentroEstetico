@@ -47,7 +47,7 @@ export const SERVICE_CATEGORIES = [
     name: "Pedicuría",
     description: "Estética e hidratación para tus pies",
     treatments: [
-      { id: "estetica-pies", name: "Estética de pies", price: 890, note: "Incluye hidratación, eliminación de callos y esmaltado semipermanente" },
+      { id: "estetica-pies", name: "Estética de pies", price: 590, note: "Incluye hidratación, eliminación de callos y esmaltado semipermanente" },
     ],
   },
   {

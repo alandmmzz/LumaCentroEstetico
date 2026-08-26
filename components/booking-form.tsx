@@ -3,8 +3,8 @@
 import { createAppointment, getBookedTimes } from "@/app/actions/appointments"
 import { DayPicker } from "@/components/day-picker"
 import { SERVICE_CATEGORIES, formatUYU } from "@/lib/services"
-import { TIME_SLOTS } from "@/lib/time-slots"
-import { Check, ChevronDown, Footprints, Hand, HeartPulse, Sparkles, Flower2 } from "lucide-react"
+import { getScheduleForCategory, isOnlineCategory, whatsappUrl } from "@/lib/schedule"
+import { Check, ChevronDown, Footprints, Hand, HeartPulse, Sparkles, Flower2, MessageCircle } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
 

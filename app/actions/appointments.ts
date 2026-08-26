@@ -3,6 +3,7 @@
 import { db } from "@/lib/db"
 import { appointments } from "@/lib/db/schema"
 import { getServicePrice, SERVICE_CATEGORIES } from "@/lib/services"
+import { getScheduleForCategory, isOnlineCategory } from "@/lib/schedule"
 import { createMercadoPagoPreference, getMercadoPagoPayment, isMercadoPagoEnabled } from "@/lib/mercadopago"
 import { and, desc, eq, ne } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
@@ -27,6 +28,9 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
     return { ok: false, error: "Seleccioná un tratamiento válido." }
   }
   const category = SERVICE_CATEGORIES.find((item) => item.name === selection.category)
+  if (!isOnlineCategory(selection.category)) {
+    return { ok: false, error: "Esta categoría se coordina por WhatsApp." }
+  }
   const validIds = new Set(category?.treatments.map((treatment) => treatment.id) ?? [])
   if (!category || !Array.isArray(selection.treatmentIds) || selection.treatmentIds.length === 0 || selection.treatmentIds.some((id) => !validIds.has(id))) {
     return { ok: false, error: "Seleccioná al menos un tratamiento válido." }
@@ -37,6 +41,25 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
   today.setHours(0, 0, 0, 0)
   if (Number.isNaN(selected.getTime()) || selected < today) {
     return { ok: false, error: "Elegí una fecha válida a partir de hoy." }
+  }
+
+  const allowedTimes = getScheduleForCategory(selection.category)
+  if (!allowedTimes.includes(appointmentTime)) {
+    return { ok: false, error: "Elegí un horario disponible para esta categoría." }
+  }
+
+  const existingAtTime = await db
+    .select({ id: appointments.id })
+    .from(appointments)
+    .where(
+      and(
+        eq(appointments.appointmentDate, appointmentDate),
+        eq(appointments.appointmentTime, appointmentTime),
+        ne(appointments.status, "cancelado"),
+      ),
+    )
+  if (existingAtTime.length >= 2) {
+    return { ok: false, error: "Ese horario acaba de ocuparse. Elegí otro." }
   }
 
   const price = getServicePrice(service)
@@ -69,7 +92,7 @@ export async function getAppointmentById(id: number) {
   return row ?? null
 }
 
-export async function getBookedTimes(appointmentDate: string) {
+export async function getBookedTimes(appointmentDate: string, category?: string) {
   const rows = await db
     .select({ appointmentTime: appointments.appointmentTime })
     .from(appointments)
@@ -79,7 +102,13 @@ export async function getBookedTimes(appointmentDate: string) {
         ne(appointments.status, "cancelado"),
       ),
     )
-  return rows.map((r) => r.appointmentTime)
+  const counts = rows.reduce<Record<string, number>>((result, row) => {
+    result[row.appointmentTime] = (result[row.appointmentTime] ?? 0) + 1
+    return result
+  }, {})
+  return Object.entries(counts)
+    .filter(([, count]) => count >= 2)
+    .map(([time]) => time)
 }
 
 export async function updateStatus(id: number, status: string) {
