@@ -113,8 +113,8 @@ export function AdminAppointments({
           No hay turnos para mostrar.
         </p>
       ) : (
-        <div className="overflow-hidden rounded-xl border border-border">
-          <table className="w-full text-left text-sm">
+        <div className="max-w-full overflow-x-auto rounded-xl border border-border">
+          <table className="min-w-[980px] w-full text-left text-sm">
             <thead className="bg-secondary/60 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-4 py-3 font-medium">Cliente</th>
