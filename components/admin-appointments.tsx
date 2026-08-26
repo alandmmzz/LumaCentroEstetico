@@ -3,32 +3,25 @@
 import {
   deleteAppointment,
   assignStaff,
-  updatePaymentManual,
   updateStatus,
 } from "@/app/actions/appointments"
 import type { Appointment, Staff } from "@/lib/db/schema"
 import { formatServiceLabel, formatUYU } from "@/lib/services"
 import { useState, useTransition } from "react"
 
-const paymentLabels: Record<string, string> = {
-  pendiente: "Sin seña",
-  pendiente_verificacion: "Verificar transf.",
-  pagado: "Pagado",
-  rejected: "Rechazado",
-}
+const STATUS_OPTIONS = ["pendiente", "confirmado", "pago", "cancelado"]
 
-const paymentStyles: Record<string, string> = {
-  pendiente: "bg-muted text-muted-foreground",
-  pendiente_verificacion: "bg-accent text-accent-foreground",
-  pagado: "bg-primary/15 text-primary",
-  rejected: "bg-destructive/10 text-destructive",
+const statusLabels: Record<string, string> = {
+  pendiente: "Pendiente",
+  confirmado: "Confirmado",
+  pago: "Pago",
+  cancelado: "Cancelado",
 }
-
-const STATUS_OPTIONS = ["pendiente", "confirmado", "cancelado"]
 
 const statusStyles: Record<string, string> = {
   pendiente: "bg-accent text-accent-foreground",
   confirmado: "bg-primary/15 text-primary",
+  pago: "bg-primary text-primary-foreground",
   cancelado: "bg-destructive/10 text-destructive",
 }
 
@@ -58,7 +51,7 @@ export function AdminAppointments({
     (!month || a.appointmentDate.startsWith(month))
   )
 
-  const monthlyIncome = filtered.reduce((total, appointment) => total + (appointment.paymentReceived ?? 0), 0)
+  const monthlyIncome = filtered.reduce((total, appointment) => total + (appointment.status === "pago" ? appointment.price : 0), 0)
 
   function downloadSummary() {
     const rows = [["Cliente", "Fecha", "Hora", "Servicio", "Profesional", "Pago recibido"], ...filtered.map((a) => [a.name, formatDateShort(a.appointmentDate), a.appointmentTime, formatServiceLabel(a.service), staff.find((p) => p.id === a.staffId)?.name ?? "Sin asignar", String(a.paymentReceived ?? 0)])]
@@ -121,7 +114,7 @@ export function AdminAppointments({
                     <div>{a.name}</div>
                     <div className="mt-1 text-xs font-normal text-muted-foreground">{a.phone}</div>
                   </td>
-                  <td className="max-w-xs px-4 py-3 text-foreground">{formatServiceLabel(a.service)}</td>
+                  <td className="max-w-xs px-4 py-3 text-foreground"><div>{formatServiceLabel(a.service)}</div><div className="mt-1 text-xs tabular-nums text-primary">Sugerido: {formatUYU(a.price)}</div></td>
                   <td className="px-4 py-3 text-muted-foreground">
                     <div>{formatDateShort(a.appointmentDate)}</div>
                     <div className="mt-1 text-xs">{a.appointmentTime} hs</div>
@@ -132,7 +125,7 @@ export function AdminAppointments({
                         statusStyles[a.status] ?? statusStyles.pendiente
                       }`}
                     >
-                      {a.status}
+{statusLabels[a.status] ?? a.status}
                     </span>
                   </td>
                   <td className="px-4 py-3">
@@ -150,26 +143,17 @@ export function AdminAppointments({
                     </select>
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`inline-block rounded-full px-3 py-1 text-xs ${
-                        paymentStyles[a.paymentStatus] ?? paymentStyles.pendiente
-                      }`}
-                    >
-                      {paymentLabels[a.paymentStatus] ?? a.paymentStatus}
-                    </span>
-                    <span className="mt-1 block text-xs tabular-nums text-muted-foreground">{formatUYU(a.paymentReceived ?? 0)} recibido</span>
+                    <input
+                      type="number"
+                      min="0"
+                      value={a.status === "pago" ? a.price : 0}
+                      readOnly
+                      className="w-28 rounded-md border border-input bg-card px-2 py-1 text-xs tabular-nums text-foreground"
+                      aria-label={`Precio del servicio de ${a.name}`}
+                    />
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
-                      <input
-                        type="number"
-                        min="0"
-                        defaultValue={a.paymentReceived}
-                        onBlur={(event) => startTransition(() => updatePaymentManual(a.id, Number(event.target.value), "manual"))}
-                        className="w-24 rounded-md border border-input bg-card px-2 py-1 text-xs text-foreground"
-                        aria-label={`Pago recibido de ${a.name}`}
-                        placeholder="Pago"
-                      />
                       <select
                         value={a.status}
                         disabled={isPending}

@@ -185,8 +185,16 @@ export async function getBookedTimes(appointmentDate: string, category?: string)
 }
 
 export async function updateStatus(id: number, status: string) {
-  await db.update(appointments).set({ status }).where(eq(appointments.id, id))
+  const appointment = await getAppointmentById(id)
+  if (!appointment) return { ok: false, error: "Turno no encontrado." }
+  const normalizedStatus = ["pendiente", "confirmado", "pago", "cancelado"].includes(status) ? status : "pendiente"
+  await db.update(appointments).set({
+    status: normalizedStatus,
+    paymentReceived: normalizedStatus === "pago" ? appointment.price : 0,
+    paymentStatus: normalizedStatus === "pago" ? "pagado" : "pendiente",
+  }).where(eq(appointments.id, id))
   revalidatePath("/admin")
+  return { ok: true }
 }
 
 export async function deleteAppointment(id: number) {
