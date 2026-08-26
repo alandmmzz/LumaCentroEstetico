@@ -1,4 +1,4 @@
-import { pgTable, serial, text, integer, date, timestamp } from "drizzle-orm/pg-core"
+import { pgTable, serial, text, integer, date, timestamp, boolean } from "drizzle-orm/pg-core"
 
 export const appointments = pgTable("appointments", {
   id: serial("id").primaryKey(),
@@ -16,6 +16,25 @@ export const appointments = pgTable("appointments", {
   mpPreferenceId: text("mp_preference_id"),
   mpPaymentId: text("mp_payment_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
+})
+
+export const serviceCategories = pgTable("service_categories", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  description: text("description").notNull().default(""),
+  icon: text("icon").notNull().default("sparkles"),
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
+})
+
+export const serviceTreatments = pgTable("service_treatments", {
+  id: serial("id").primaryKey(),
+  categoryId: integer("category_id").notNull(),
+  name: text("name").notNull(),
+  price: integer("price"),
+  note: text("note").notNull().default(""),
+  sortOrder: integer("sort_order").notNull().default(0),
+  active: boolean("active").notNull().default(true),
 })
 
 export type Appointment = typeof appointments.$inferSelect

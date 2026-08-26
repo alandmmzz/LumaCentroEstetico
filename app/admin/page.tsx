@@ -1,12 +1,16 @@
-import { getAppointments } from "@/app/actions/appointments"
+import { getAdminServiceCatalog, getAppointments } from "@/app/actions/appointments"
 import { AdminAppointments } from "@/components/admin-appointments"
+import { AdminServices } from "@/components/admin-services"
 import { AdminCalendar } from "@/components/admin-calendar"
 import Link from "next/link"
 
 export const dynamic = "force-dynamic"
 
 export default async function AdminPage() {
-  const appointments = await getAppointments()
+  const [appointments, serviceCatalog] = await Promise.all([
+    getAppointments(),
+    getAdminServiceCatalog(),
+  ])
 
   const pendientes = appointments.filter((a) => a.status === "pendiente").length
   const confirmados = appointments.filter(
@@ -52,6 +56,8 @@ export default async function AdminPage() {
             </div>
           ))}
         </div>
+
+        <AdminServices catalog={serviceCatalog} />
 
         <AdminCalendar appointments={appointments} />
 

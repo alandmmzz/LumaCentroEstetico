@@ -1,7 +1,8 @@
 "use server"
 
 import { db } from "@/lib/db"
-import { appointments } from "@/lib/db/schema"
+import { appointments, serviceCategories, serviceTreatments } from "@/lib/db/schema"
+import { getAllServiceCatalog } from "@/lib/db/services"
 import { getServicePrice, SERVICE_CATEGORIES } from "@/lib/services"
 import { getScheduleForCategory, isOnlineCategory } from "@/lib/schedule"
 import { createMercadoPagoPreference, getMercadoPagoPayment, isMercadoPagoEnabled } from "@/lib/mercadopago"
@@ -85,6 +86,34 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
 
 export async function getAppointments() {
   return db.select().from(appointments).orderBy(desc(appointments.createdAt))
+}
+
+export async function getAdminServiceCatalog() {
+  return getAllServiceCatalog()
+}
+
+export async function updateTreatmentPrice(id: number, price: number | null) {
+  await db.update(serviceTreatments).set({ price }).where(eq(serviceTreatments.id, id))
+  revalidatePath("/")
+  revalidatePath("/admin")
+}
+
+export async function createTreatment(categoryId: number, name: string, price: number | null) {
+  const cleanName = name.trim()
+  if (!cleanName) return { ok: false, error: "Ingresá un nombre." }
+  await db.insert(serviceTreatments).values({ categoryId, name: cleanName, price, sortOrder: 99 })
+  revalidatePath("/")
+  revalidatePath("/admin")
+  return { ok: true }
+}
+
+export async function updateServiceCategory(id: number, name: string, description: string) {
+  const cleanName = name.trim()
+  if (!cleanName) return { ok: false, error: "Ingresá un nombre." }
+  await db.update(serviceCategories).set({ name: cleanName, description: description.trim() }).where(eq(serviceCategories.id, id))
+  revalidatePath("/")
+  revalidatePath("/admin")
+  return { ok: true }
 }
 
 export async function getAppointmentById(id: number) {
