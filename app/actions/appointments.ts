@@ -11,6 +11,14 @@ import { revalidatePath } from "next/cache"
 
 export type BookingResult = { ok: boolean; error?: string; id?: number }
 
+function getAppointmentCategory(service: string) {
+  try {
+    return (JSON.parse(service) as { category?: string }).category ?? service
+  } catch {
+    return service
+  }
+}
+
 export async function createAppointment(formData: FormData): Promise<BookingResult> {
   const name = String(formData.get("name") ?? "").trim()
   const phone = String(formData.get("phone") ?? "").trim()
@@ -51,7 +59,7 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
   }
 
   const existingAtTime = await db
-    .select({ id: appointments.id })
+    .select({ id: appointments.id, service: appointments.service })
     .from(appointments)
     .where(
       and(
@@ -60,8 +68,12 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
         ne(appointments.status, "cancelado"),
       ),
     )
+  const sameCategory = existingAtTime.some((item) => getAppointmentCategory(item.service) === selection.category)
+  if (sameCategory) {
+    return { ok: false, error: `Ya existe un turno de ${selection.category} para ese día y horario.` }
+  }
   if (existingAtTime.length >= 2) {
-    return { ok: false, error: "Ese horario acaba de ocuparse. Elegí otro." }
+    return { ok: false, error: "Ese horario ya tiene dos servicios asignados. Elegí otro." }
   }
 
   const price = getServicePrice(service)
@@ -175,12 +187,15 @@ export async function getBookedTimes(appointmentDate: string, category?: string)
         ne(appointments.status, "cancelado"),
       ),
     )
-  const counts = rows.reduce<Record<string, number>>((result, row) => {
-    result[row.appointmentTime] = (result[row.appointmentTime] ?? 0) + 1
+  const unavailable = rows.reduce<Record<string, { total: number; categories: Set<string> }>>((result, row) => {
+    const current = result[row.appointmentTime] ?? { total: 0, categories: new Set<string>() }
+    current.total += 1
+    current.categories.add(getAppointmentCategory(row.service))
+    result[row.appointmentTime] = current
     return result
   }, {})
-  return Object.entries(counts)
-    .filter(([, count]) => count >= 2)
+  return Object.entries(unavailable)
+    .filter(([, value]) => value.total >= 2 || (category ? value.categories.has(category) : false))
     .map(([time]) => time)
 }
 
