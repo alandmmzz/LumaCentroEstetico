@@ -30,8 +30,13 @@ export function BookingForm() {
     if (!selectedDate) { setBookedTimes([]); return }
     setIsLoadingTimes(true)
     setSelectedTime(null)
-    getBookedTimes(selectedDate).then(setBookedTimes).finally(() => setIsLoadingTimes(false))
-  }, [selectedDate])
+    if (!selectedCategory || !isOnlineCategory(selectedCategory)) {
+      setBookedTimes([])
+      setIsLoadingTimes(false)
+      return
+    }
+    getBookedTimes(selectedDate, selectedCategory).then(setBookedTimes).finally(() => setIsLoadingTimes(false))
+  }, [selectedDate, selectedCategory])
 
   const category = SERVICE_CATEGORIES.find((item) => item.name === selectedCategory)
   const servicePrice = category?.treatments.filter((item) => selectedTreatments.includes(item.id)).reduce((sum, item) => sum + (item.price ?? 0), 0) ?? 0
@@ -92,9 +97,17 @@ export function BookingForm() {
         <input type="hidden" name="service" value={selectedCategory ?? ""} />
         {servicePrice > 0 && <p className="mt-3 text-sm text-muted-foreground">Total estimado: <span className="text-foreground">{formatUYU(servicePrice)}</span></p>}
       </fieldset>
-      <div><p className="mb-2 text-sm text-foreground">Elegí el día</p><DayPicker selected={selectedDate} onSelect={setSelectedDate} /></div>
-      <div><p className="mb-2 text-sm text-foreground">{selectedDate ? `Horarios disponibles · ${formatSelected(selectedDate)}` : "Horarios disponibles (09 a 20 hs)"}</p>{!selectedDate ? <p className="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">Seleccioná primero un día para ver los horarios.</p> : isLoadingTimes ? <p className="rounded-md border border-border px-4 py-6 text-center text-sm text-muted-foreground">Cargando horarios...</p> : <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">{TIME_SLOTS.map((time) => { const booked = bookedTimes.includes(time); const active = selectedTime === time; return <button key={time} type="button" disabled={booked} onClick={() => setSelectedTime(time)} className={`rounded-md border px-2 py-2 text-xs tabular-nums transition-colors ${active ? "border-primary bg-primary text-primary-foreground" : booked ? "cursor-not-allowed border-border text-muted-foreground/40 line-through" : "border-border text-foreground hover:border-primary hover:text-primary"}`}>{time}</button> })}</div>}</div>
-      <button type="submit" disabled={isPending || !selectedDate || !selectedTime || !selectedCategory || selectedTreatments.length === 0} className="w-full rounded-full bg-primary px-8 py-3.5 text-sm tracking-[0.15em] text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60">{isPending ? "PROCESANDO..." : "CONTINUAR A LA SEÑA"}</button>
+      {selectedCategory && !isOnlineCategory(selectedCategory) ? (
+        <a href={whatsappUrl(`Hola, quisiera consultar horarios para ${selectedCategory}.`)} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-3 rounded-full bg-primary px-6 py-3.5 text-sm tracking-wide text-primary-foreground transition-opacity hover:opacity-90">
+          <MessageCircle className="h-5 w-5" aria-hidden="true" /> CONSULTAR POR HORARIOS A WHATSAPP · +598 95 206 278
+        </a>
+      ) : (
+        <>
+          <div><p className="mb-2 text-sm text-foreground">Elegí el día</p><DayPicker selected={selectedDate} onSelect={setSelectedDate} /></div>
+          <div><p className="mb-2 text-sm text-foreground">{selectedDate ? `Horarios disponibles · ${formatSelected(selectedDate)}` : "Horarios disponibles"}</p>{!selectedDate ? <p className="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">Seleccioná primero un día para ver los horarios.</p> : isLoadingTimes ? <p className="rounded-md border border-border px-4 py-6 text-center text-sm text-muted-foreground">Cargando horarios...</p> : <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">{getScheduleForCategory(selectedCategory ?? "").map((time) => { const booked = bookedTimes.includes(time); const active = selectedTime === time; return <button key={time} type="button" disabled={booked} onClick={() => setSelectedTime(time)} className={`rounded-md border px-2 py-2 text-xs tabular-nums transition-colors ${active ? "border-primary bg-primary text-primary-foreground" : booked ? "cursor-not-allowed border-border text-muted-foreground/40 line-through" : "border-border text-foreground hover:border-primary hover:text-primary"}`}>{time}</button> })}</div>}</div>
+          <button type="submit" disabled={isPending || !selectedDate || !selectedTime || !selectedCategory || selectedTreatments.length === 0} className="w-full rounded-full bg-primary px-8 py-3.5 text-sm tracking-[0.15em] text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60">{isPending ? "PROCESANDO..." : "CONTINUAR A LA SEÑA"}</button>
+        </>
+      )}
       {message && <p role="status" className={`rounded-md px-4 py-3 text-center text-sm ${message.ok ? "bg-primary/10 text-primary" : "bg-destructive/10 text-destructive"}`}>{message.text}</p>}
     </form>
   )
