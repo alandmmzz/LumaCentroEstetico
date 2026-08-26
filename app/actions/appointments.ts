@@ -13,9 +13,10 @@ export type BookingResult = { ok: boolean; error?: string; id?: number }
 
 function getAppointmentCategory(service: string) {
   try {
-    return (JSON.parse(service) as { category?: string }).category ?? service
+    const parsed = JSON.parse(service) as { category?: string }
+    return parsed.category?.trim() ?? service.trim()
   } catch {
-    return service
+    return service.trim()
   }
 }
 
@@ -179,7 +180,7 @@ export async function getAppointmentById(id: number) {
 
 export async function getBookedTimes(appointmentDate: string, category?: string) {
   const rows = await db
-    .select({ appointmentTime: appointments.appointmentTime })
+    .select({ appointmentTime: appointments.appointmentTime, service: appointments.service })
     .from(appointments)
     .where(
       and(
