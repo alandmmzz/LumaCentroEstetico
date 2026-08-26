@@ -190,7 +190,7 @@ export async function updateStatus(id: number, status: string) {
   const normalizedStatus = ["pendiente", "confirmado", "pago", "cancelado"].includes(status) ? status : "pendiente"
   await db.update(appointments).set({
     status: normalizedStatus,
-    paymentReceived: normalizedStatus === "pago" ? appointment.price : 0,
+    paymentReceived: normalizedStatus === "pago" ? (appointment.paymentReceived || appointment.price) : appointment.paymentReceived,
     paymentStatus: normalizedStatus === "pago" ? "pagado" : "pendiente",
   }).where(eq(appointments.id, id))
   revalidatePath("/admin")

@@ -3,6 +3,7 @@
 import {
   deleteAppointment,
   assignStaff,
+  updatePaymentManual,
   updateStatus,
 } from "@/app/actions/appointments"
 import type { Appointment, Staff } from "@/lib/db/schema"
@@ -44,6 +45,9 @@ export function AdminAppointments({
 }) {
   const [filter, setFilter] = useState("todos")
   const [month, setMonth] = useState("")
+  const [paymentAmounts, setPaymentAmounts] = useState<Record<number, number>>(
+    () => Object.fromEntries(appointments.map((appointment) => [appointment.id, appointment.paymentReceived || appointment.price])),
+  )
   const [isPending, startTransition] = useTransition()
 
   const filtered = appointments.filter((a) =>
@@ -51,10 +55,10 @@ export function AdminAppointments({
     (!month || a.appointmentDate.startsWith(month))
   )
 
-  const monthlyIncome = filtered.reduce((total, appointment) => total + (appointment.status === "pago" ? appointment.price : 0), 0)
+  const monthlyIncome = filtered.reduce((total, appointment) => total + (appointment.status === "pago" ? (paymentAmounts[appointment.id] ?? appointment.paymentReceived ?? appointment.price) : 0), 0)
 
   function downloadSummary() {
-    const rows = [["Cliente", "Fecha", "Hora", "Servicio", "Profesional", "Pago recibido"], ...filtered.map((a) => [a.name, formatDateShort(a.appointmentDate), a.appointmentTime, formatServiceLabel(a.service), staff.find((p) => p.id === a.staffId)?.name ?? "Sin asignar", String(a.paymentReceived ?? 0)])]
+    const rows = [["Cliente", "Fecha", "Hora", "Servicio", "Profesional", "Pago recibido"], ...filtered.map((a) => [a.name, formatDateShort(a.appointmentDate), a.appointmentTime, formatServiceLabel(a.service), staff.find((p) => p.id === a.staffId)?.name ?? "Sin asignar", String(paymentAmounts[a.id] ?? a.price)])]
     const csv = rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(",")).join("\\n")
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
     const url = URL.createObjectURL(blob)
@@ -146,10 +150,18 @@ export function AdminAppointments({
                     <input
                       type="number"
                       min="0"
-                      value={a.status === "pago" ? a.price : 0}
-                      readOnly
+                      value={paymentAmounts[a.id] ?? a.price}
+                      onChange={(event) => {
+                        const amount = Math.max(0, Number(event.target.value) || 0)
+                        setPaymentAmounts((current) => ({ ...current, [a.id]: amount }))
+                      }}
+                      onBlur={() => {
+                        const amount = paymentAmounts[a.id] ?? a.price
+                        startTransition(() => updatePaymentManual(a.id, amount, a.status === "pago" ? "pagado" : "pendiente"))
+                      }}
                       className="w-28 rounded-md border border-input bg-card px-2 py-1 text-xs tabular-nums text-foreground"
-                      aria-label={`Precio del servicio de ${a.name}`}
+                      aria-label={`Monto a cobrar de ${a.name}`}
+                      title="Podés ajustar por propina u otros cargos"
                     />
                   </td>
                   <td className="px-4 py-3">
