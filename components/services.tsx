@@ -1,32 +1,11 @@
+import { SERVICE_CATEGORIES, formatUYU } from "@/lib/services"
 import Image from "next/image"
 
-const services = [
-  {
-    name: "Nails",
-    description:
-      "Manicuría, esmaltado semipermanente y diseños que realzan tus manos.",
-  },
-  {
-    name: "Pedicura",
-    description:
-      "Cuidado completo de tus pies con acabados prolijos y duraderos.",
-  },
-  {
-    name: "Depilación",
-    description:
-      "Técnicas cuidadas para una piel suave, respetando cada zona.",
-  },
-  {
-    name: "Masajes descontracturantes",
-    description:
-      "Aliviá tensiones y recuperá tu equilibrio con manos expertas.",
-  },
-  {
-    name: "Cosmetología",
-    description:
-      "Tratamientos faciales que iluminan y renuevan tu piel.",
-  },
-]
+const services = SERVICE_CATEGORIES.map((category) => ({
+  name: category.name,
+  description: category.description,
+  treatments: category.treatments,
+}))
 
 export function Services() {
   return (
@@ -67,6 +46,19 @@ export function Services() {
                   <p className="mt-1 leading-relaxed text-muted-foreground">
                     {service.description}
                   </p>
+                  <div className="mt-4 flex flex-wrap gap-2" aria-label={`Tratamientos de ${service.name}`}>
+                    {service.treatments.map((treatment) => (
+                      <span
+                        key={treatment.id}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-background/70 px-3 py-1.5 text-xs text-foreground"
+                      >
+                        {treatment.name}
+                        {treatment.price !== null && (
+                          <span className="text-primary">{formatUYU(treatment.price)}</span>
+                        )}
+                      </span>
+                    ))}
+                  </div>
                 </div>
               </li>
             ))}

@@ -1,8 +1,27 @@
 "use client"
 
-import { deleteAppointment, updateStatus } from "@/app/actions/appointments"
+import {
+  deleteAppointment,
+  markPaymentVerified,
+  updateStatus,
+} from "@/app/actions/appointments"
 import type { Appointment } from "@/lib/db/schema"
+import { formatServiceLabel, formatUYU } from "@/lib/services"
 import { useState, useTransition } from "react"
+
+const paymentLabels: Record<string, string> = {
+  pendiente: "Sin seña",
+  pendiente_verificacion: "Verificar transf.",
+  pagado: "Pagado",
+  rejected: "Rechazado",
+}
+
+const paymentStyles: Record<string, string> = {
+  pendiente: "bg-muted text-muted-foreground",
+  pendiente_verificacion: "bg-accent text-accent-foreground",
+  pagado: "bg-primary/15 text-primary",
+  rejected: "bg-destructive/10 text-destructive",
+}
 
 const STATUS_OPTIONS = ["pendiente", "confirmado", "cancelado"]
 
@@ -68,6 +87,7 @@ export function AdminAppointments({
                 <th className="px-4 py-3 font-medium">Fecha</th>
                 <th className="px-4 py-3 font-medium">Hora</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
+                <th className="px-4 py-3 font-medium">Pago</th>
                 <th className="px-4 py-3 font-medium text-right">Acciones</th>
               </tr>
             </thead>
@@ -78,7 +98,7 @@ export function AdminAppointments({
                     {a.name}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{a.phone}</td>
-                  <td className="px-4 py-3 text-foreground">{a.service}</td>
+                  <td className="max-w-xs px-4 py-3 text-foreground">{formatServiceLabel(a.service)}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {formatDate(a.appointmentDate)}
                   </td>
@@ -95,7 +115,33 @@ export function AdminAppointments({
                     </span>
                   </td>
                   <td className="px-4 py-3">
+                    <span
+                      className={`inline-block rounded-full px-3 py-1 text-xs ${
+                        paymentStyles[a.paymentStatus] ?? paymentStyles.pendiente
+                      }`}
+                    >
+                      {paymentLabels[a.paymentStatus] ?? a.paymentStatus}
+                    </span>
+                    {a.depositAmount > 0 && (
+                      <span className="mt-1 block text-xs tabular-nums text-muted-foreground">
+                        {formatUYU(a.depositAmount)} ({a.depositPercentage}%)
+                        {a.paymentMethod ? ` · ${a.paymentMethod}` : ""}
+                      </span>
+                    )}
+                  </td>
+                  <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
+                      {a.paymentStatus === "pendiente_verificacion" && (
+                        <button
+                          onClick={() =>
+                            startTransition(() => markPaymentVerified(a.id))
+                          }
+                          disabled={isPending}
+                          className="rounded-md border border-primary/40 px-3 py-1 text-xs text-primary transition-colors hover:bg-primary/10 disabled:opacity-60"
+                        >
+                          Confirmar pago
+                        </button>
+                      )}
                       <select
                         value={a.status}
                         disabled={isPending}
