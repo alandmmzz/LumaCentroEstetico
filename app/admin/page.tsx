@@ -1,23 +1,19 @@
-import { getAppointments } from "@/app/actions/appointments"
+import { getAdminServiceCatalog, getAppointments, getStaff } from "@/app/actions/appointments"
 import { AdminAppointments } from "@/components/admin-appointments"
+import { AdminServices } from "@/components/admin-services"
+import { AdminStaff } from "@/components/admin-staff"
+import { AdminTabs } from "@/components/admin-tabs"
 import { AdminCalendar } from "@/components/admin-calendar"
 import Link from "next/link"
 
 export const dynamic = "force-dynamic"
 
 export default async function AdminPage() {
-  const appointments = await getAppointments()
-
-  const pendientes = appointments.filter((a) => a.status === "pendiente").length
-  const confirmados = appointments.filter(
-    (a) => a.status === "confirmado",
-  ).length
-
-  const stats = [
-    { label: "Total de turnos", value: appointments.length },
-    { label: "Pendientes", value: pendientes },
-    { label: "Confirmados", value: confirmados },
-  ]
+  const [appointments, serviceCatalog, staffList] = await Promise.all([
+    getAppointments(),
+    getAdminServiceCatalog(),
+    getStaff(),
+  ])
 
   return (
     <main className="min-h-screen bg-background">
@@ -39,23 +35,11 @@ export default async function AdminPage() {
           </Link>
         </div>
 
-        <div className="mb-10 grid gap-4 sm:grid-cols-3">
-          {stats.map((s) => (
-            <div
-              key={s.label}
-              className="rounded-xl border border-border bg-card/60 p-6"
-            >
-              <p className="text-4xl font-light text-primary tabular-nums">
-                {s.value}
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
-            </div>
-          ))}
-        </div>
-
-        <AdminCalendar appointments={appointments} />
-
-        <AdminAppointments appointments={appointments} />
+        <AdminTabs
+          turnos={<div className="space-y-10"><AdminCalendar appointments={appointments} /><AdminAppointments appointments={appointments} staff={staffList} /></div>}
+          servicios={<AdminServices catalog={serviceCatalog} />}
+          personal={<AdminStaff staff={staffList} />}
+        />
       </div>
     </main>
   )

@@ -2,7 +2,7 @@ import Image from "next/image"
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden pt-24">
+    <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 pb-24 pt-24 sm:pb-32">
       <Image
         src="/hero-luma.png"
         alt="Ambiente cálido de LUMA Centro Estético con flores secas y luz natural"

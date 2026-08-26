@@ -2,74 +2,110 @@
 
 import {
   deleteAppointment,
-  markPaymentVerified,
+  assignStaff,
+  updatePaymentManual,
   updateStatus,
 } from "@/app/actions/appointments"
-import type { Appointment } from "@/lib/db/schema"
-import { formatServiceLabel, formatUYU } from "@/lib/services"
+import type { Appointment, Staff } from "@/lib/db/schema"
+import { SERVICE_CATEGORIES, formatServiceLabel, formatUYU } from "@/lib/services"
 import { useState, useTransition } from "react"
 
-const paymentLabels: Record<string, string> = {
-  pendiente: "Sin seña",
-  pendiente_verificacion: "Verificar transf.",
-  pagado: "Pagado",
-  rejected: "Rechazado",
-}
+const STATUS_OPTIONS = ["pendiente", "confirmado", "pago", "cancelado"]
 
-const paymentStyles: Record<string, string> = {
-  pendiente: "bg-muted text-muted-foreground",
-  pendiente_verificacion: "bg-accent text-accent-foreground",
-  pagado: "bg-primary/15 text-primary",
-  rejected: "bg-destructive/10 text-destructive",
+const statusLabels: Record<string, string> = {
+  pendiente: "Pendiente",
+  confirmado: "Confirmado",
+  pago: "Pago",
+  cancelado: "Cancelado",
 }
-
-const STATUS_OPTIONS = ["pendiente", "confirmado", "cancelado"]
 
 const statusStyles: Record<string, string> = {
   pendiente: "bg-accent text-accent-foreground",
   confirmado: "bg-primary/15 text-primary",
+  pago: "bg-primary text-primary-foreground",
   cancelado: "bg-destructive/10 text-destructive",
 }
 
 function formatDate(value: string) {
   const d = new Date(`${value}T00:00:00`)
-  return d.toLocaleDateString("es-UY", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  })
+  return d.toLocaleDateString("es-UY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })
+}
+
+function getServiceCategory(value: string) {
+  try {
+    return JSON.parse(value).category ?? value
+  } catch {
+    return value
+  }
+}
+
+function formatDateShort(value: string) {
+  const [year, month, day] = value.split("-")
+  return `${day}/${month}/${year.slice(-2)}`
 }
 
 export function AdminAppointments({
   appointments,
+  staff,
 }: {
   appointments: Appointment[]
+  staff: Staff[]
 }) {
   const [filter, setFilter] = useState("todos")
+  const [serviceFilter, setServiceFilter] = useState("todos")
+  const [staffFilter, setStaffFilter] = useState("todos")
+  const [month, setMonth] = useState("")
+  const [paymentAmounts, setPaymentAmounts] = useState<Record<number, number>>(
+    () => Object.fromEntries(appointments.map((appointment) => [appointment.id, appointment.paymentReceived || appointment.price])),
+  )
   const [isPending, startTransition] = useTransition()
 
-  const filtered =
-    filter === "todos"
-      ? appointments
-      : appointments.filter((a) => a.status === filter)
+  const filtered = appointments.filter((a) =>
+    (filter === "todos" || a.status === filter) &&
+    (serviceFilter === "todos" || getServiceCategory(a.service) === serviceFilter) &&
+    (staffFilter === "todos" || String(a.staffId ?? "") === staffFilter) &&
+    (!month || a.appointmentDate.startsWith(month))
+  )
+
+  const monthlyIncome = filtered.reduce((total, appointment) => total + (appointment.status === "pago" ? (paymentAmounts[appointment.id] ?? appointment.paymentReceived ?? appointment.price) : 0), 0)
+
+  function downloadSummary() {
+    const rows = [["Cliente", "Fecha", "Hora", "Servicio", "Profesional", "Pago recibido"], ...filtered.map((a) => [a.name, formatDateShort(a.appointmentDate), a.appointmentTime, formatServiceLabel(a.service), staff.find((p) => p.id === a.staffId)?.name ?? "Sin asignar", String(paymentAmounts[a.id] ?? a.price)])]
+    const csv = rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(",")).join("\\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `resumen-ingresos-${month || "todos"}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div>
-      <div className="mb-6 flex flex-wrap gap-2">
-        {["todos", ...STATUS_OPTIONS].map((f) => (
-          <button
-            key={f}
-            onClick={() => setFilter(f)}
-            className={`rounded-full px-4 py-1.5 text-xs capitalize tracking-wide transition-colors ${
-              filter === f
-                ? "bg-primary text-primary-foreground"
-                : "border border-border bg-card text-muted-foreground hover:text-foreground"
-            }`}
-          >
-            {f}
-          </button>
-        ))}
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <label className="text-xs uppercase tracking-wide text-muted-foreground" htmlFor="month-filter">Mes</label>
+        <input id="month-filter" type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground" />
+        <button type="button" onClick={downloadSummary} className="rounded-full border border-primary/40 px-4 py-2 text-xs text-primary hover:bg-primary/10">DESCARGAR CSV</button>
+        <span className="text-sm text-muted-foreground">Ingresos: <strong className="text-foreground">{formatUYU(monthlyIncome)}</strong></span>
+      </div>
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <label className="sr-only" htmlFor="status-filter">Filtrar por estado</label>
+        <select id="status-filter" value={filter} onChange={(event) => setFilter(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
+          <option value="todos">Todos los estados</option>
+          {STATUS_OPTIONS.map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}
+        </select>
+        <label className="sr-only" htmlFor="service-filter">Filtrar por servicio</label>
+        <select id="service-filter" value={serviceFilter} onChange={(event) => setServiceFilter(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
+          <option value="todos">Todos los servicios</option>
+          {SERVICE_CATEGORIES.slice(0, 5).map((category) => <option key={category.name} value={category.name}>{category.name}</option>)}
+        </select>
+        <label className="sr-only" htmlFor="staff-filter">Filtrar por profesional</label>
+        <select id="staff-filter" value={staffFilter} onChange={(event) => setStaffFilter(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
+          <option value="todos">Todo el personal</option>
+          <option value="">Sin asignar</option>
+          {staff.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
+        </select>
       </div>
 
       {filtered.length === 0 ? (
@@ -82,11 +118,10 @@ export function AdminAppointments({
             <thead className="bg-secondary/60 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-4 py-3 font-medium">Cliente</th>
-                <th className="px-4 py-3 font-medium">Teléfono</th>
                 <th className="px-4 py-3 font-medium">Servicio</th>
-                <th className="px-4 py-3 font-medium">Fecha</th>
-                <th className="px-4 py-3 font-medium">Hora</th>
+                <th className="px-4 py-3 font-medium">Fecha y hora</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
+                <th className="px-4 py-3 font-medium">Profesional</th>
                 <th className="px-4 py-3 font-medium">Pago</th>
                 <th className="px-4 py-3 font-medium text-right">Acciones</th>
               </tr>
@@ -95,15 +130,13 @@ export function AdminAppointments({
               {filtered.map((a) => (
                 <tr key={a.id} className="bg-card/40">
                   <td className="px-4 py-3 font-medium text-foreground">
-                    {a.name}
+                    <div>{a.name}</div>
+                    <div className="mt-1 text-xs font-normal text-muted-foreground">{a.phone}</div>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{a.phone}</td>
-                  <td className="max-w-xs px-4 py-3 text-foreground">{formatServiceLabel(a.service)}</td>
+                  <td className="max-w-xs px-4 py-3 text-foreground"><div>{formatServiceLabel(a.service)}</div><div className="mt-1 text-xs tabular-nums text-primary">Sugerido: {formatUYU(a.price)}</div></td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {formatDate(a.appointmentDate)}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {a.appointmentTime} hs
+                    <div>{formatDateShort(a.appointmentDate)}</div>
+                    <div className="mt-1 text-xs">{a.appointmentTime} hs</div>
                   </td>
                   <td className="px-4 py-3">
                     <span
@@ -111,37 +144,43 @@ export function AdminAppointments({
                         statusStyles[a.status] ?? statusStyles.pendiente
                       }`}
                     >
-                      {a.status}
+{statusLabels[a.status] ?? a.status}
                     </span>
                   </td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`inline-block rounded-full px-3 py-1 text-xs ${
-                        paymentStyles[a.paymentStatus] ?? paymentStyles.pendiente
-                      }`}
+                    <select
+                      value={a.staffId ?? ""}
+                      onChange={(event) =>
+                        startTransition(() => assignStaff(a.id, event.target.value ? Number(event.target.value) : null))
+                      }
+                      disabled={isPending}
+                      className="rounded-md border border-input bg-card px-2 py-1 text-xs text-foreground"
+                      aria-label={`Profesional para ${a.name}`}
                     >
-                      {paymentLabels[a.paymentStatus] ?? a.paymentStatus}
-                    </span>
-                    {a.depositAmount > 0 && (
-                      <span className="mt-1 block text-xs tabular-nums text-muted-foreground">
-                        {formatUYU(a.depositAmount)} ({a.depositPercentage}%)
-                        {a.paymentMethod ? ` · ${a.paymentMethod}` : ""}
-                      </span>
-                    )}
+                      <option value="">Sin asignar</option>
+                      {staff.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
+                    </select>
+                  </td>
+                  <td className="px-4 py-3">
+                    <input
+                      type="number"
+                      min="0"
+                      value={paymentAmounts[a.id] ?? a.price}
+                      onChange={(event) => {
+                        const amount = Math.max(0, Number(event.target.value) || 0)
+                        setPaymentAmounts((current) => ({ ...current, [a.id]: amount }))
+                      }}
+                      onBlur={() => {
+                        const amount = paymentAmounts[a.id] ?? a.price
+                        startTransition(() => updatePaymentManual(a.id, amount, a.status === "pago" ? "pagado" : "pendiente"))
+                      }}
+                      className="w-28 rounded-md border border-input bg-card px-2 py-1 text-xs tabular-nums text-foreground"
+                      aria-label={`Monto a cobrar de ${a.name}`}
+                      title="Podés ajustar por propina u otros cargos"
+                    />
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
-                      {a.paymentStatus === "pendiente_verificacion" && (
-                        <button
-                          onClick={() =>
-                            startTransition(() => markPaymentVerified(a.id))
-                          }
-                          disabled={isPending}
-                          className="rounded-md border border-primary/40 px-3 py-1 text-xs text-primary transition-colors hover:bg-primary/10 disabled:opacity-60"
-                        >
-                          Confirmar pago
-                        </button>
-                      )}
                       <select
                         value={a.status}
                         disabled={isPending}

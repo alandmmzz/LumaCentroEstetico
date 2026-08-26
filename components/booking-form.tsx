@@ -73,6 +73,10 @@ export function BookingForm() {
         <input id="name" name="name" type="text" required placeholder="Tu nombre" className={inputClass} />
       </div>
       <div>
+        <label htmlFor="email" className="mb-2 block text-sm text-foreground">Email para confirmar tu turno</label>
+        <input id="email" name="email" type="email" placeholder="tu@email.com" className={inputClass} />
+      </div>
+      <div>
         <label htmlFor="phone" className="mb-2 block text-sm text-foreground">Teléfono</label>
         <input id="phone" name="phone" type="tel" required placeholder="Ej. 099 123 456" className={inputClass} />
       </div>

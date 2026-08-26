@@ -7,7 +7,7 @@ const services = SERVICE_CATEGORIES.map((category) => ({
   treatments: category.treatments,
 }))
 
-export function Services() {
+export function Services({ catalog = services }: { catalog?: typeof services } = {}) {
   return (
     <section id="servicios" className="bg-secondary/50 py-24">
       <div className="mx-auto max-w-6xl px-6">
@@ -31,7 +31,7 @@ export function Services() {
           </div>
 
           <ul className="divide-y divide-border">
-            {services.map((service, i) => (
+            {catalog.map((service, i) => (
               <li
                 key={service.name}
                 className="flex items-start gap-5 py-6 first:pt-0"
