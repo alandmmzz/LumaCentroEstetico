@@ -1,6 +1,7 @@
 "use client"
 
 import type { Appointment } from "@/lib/db/schema"
+import { formatServiceLabel } from "@/lib/services"
 import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react"
 import { useMemo, useState } from "react"
 
@@ -204,7 +205,7 @@ export function AdminCalendar({
                     {a.name}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {a.service}
+                    {formatServiceLabel(a.service)}
                   </p>
                 </div>
                 <span

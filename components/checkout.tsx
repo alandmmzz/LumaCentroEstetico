@@ -7,6 +7,7 @@ import {
 import {
   BANK_ACCOUNT,
   DEPOSIT_OPTIONS,
+  formatServiceLabel,
   formatUYU,
 } from "@/lib/services"
 import { Building2, Check, Copy, CreditCard, Loader2 } from "lucide-react"
@@ -247,7 +248,7 @@ export function Checkout({
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-muted-foreground">Servicio</dt>
-              <dd className="text-right text-foreground">{appointment.service}</dd>
+              <dd className="text-right text-foreground">{formatServiceLabel(appointment.service)}</dd>
             </div>
             <div className="flex justify-between gap-4">
               <dt className="text-muted-foreground">Fecha</dt>

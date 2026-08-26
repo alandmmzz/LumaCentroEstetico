@@ -6,7 +6,7 @@ import {
   updateStatus,
 } from "@/app/actions/appointments"
 import type { Appointment } from "@/lib/db/schema"
-import { formatUYU } from "@/lib/services"
+import { formatServiceLabel, formatUYU } from "@/lib/services"
 import { useState, useTransition } from "react"
 
 const paymentLabels: Record<string, string> = {
@@ -98,7 +98,7 @@ export function AdminAppointments({
                     {a.name}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">{a.phone}</td>
-                  <td className="px-4 py-3 text-foreground">{a.service}</td>
+                  <td className="max-w-xs px-4 py-3 text-foreground">{formatServiceLabel(a.service)}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {formatDate(a.appointmentDate)}
                   </td>

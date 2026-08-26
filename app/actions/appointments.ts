@@ -2,7 +2,7 @@
 
 import { db } from "@/lib/db"
 import { appointments } from "@/lib/db/schema"
-import { getServicePrice, SERVICE_NAMES } from "@/lib/services"
+import { getServicePrice, SERVICE_CATEGORIES } from "@/lib/services"
 import { createMercadoPagoPreference, getMercadoPagoPayment, isMercadoPagoEnabled } from "@/lib/mercadopago"
 import { and, desc, eq, ne } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
@@ -20,8 +20,16 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
     return { ok: false, error: "Por favor completá todos los campos." }
   }
 
-  if (!SERVICE_NAMES.includes(service as (typeof SERVICE_NAMES)[number])) {
-    return { ok: false, error: "Seleccioná un servicio válido." }
+  let selection: { category: string; treatmentIds: string[] }
+  try {
+    selection = JSON.parse(service)
+  } catch {
+    return { ok: false, error: "Seleccioná un tratamiento válido." }
+  }
+  const category = SERVICE_CATEGORIES.find((item) => item.name === selection.category)
+  const validIds = new Set(category?.treatments.map((treatment) => treatment.id) ?? [])
+  if (!category || !Array.isArray(selection.treatmentIds) || selection.treatmentIds.length === 0 || selection.treatmentIds.some((id) => !validIds.has(id))) {
+    return { ok: false, error: "Seleccioná al menos un tratamiento válido." }
   }
 
   const selected = new Date(`${appointmentDate}T00:00:00`)
@@ -32,6 +40,9 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
   }
 
   const price = getServicePrice(service)
+  if (price <= 0) {
+    return { ok: false, error: "Para Depilación, consultá el precio antes de reservar." }
+  }
 
   const [row] = await db
     .insert(appointments)
