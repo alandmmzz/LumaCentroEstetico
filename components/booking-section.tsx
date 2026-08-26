@@ -3,8 +3,8 @@ import { BookingForm } from "./booking-form"
 export function BookingSection() {
   return (
     <section id="agenda" className="bg-background py-24">
-      <div className="mx-auto grid max-w-6xl gap-14 px-6 lg:grid-cols-2 lg:items-center">
-        <div>
+      <div className="mx-auto grid max-w-6xl gap-14 px-6 lg:grid-cols-2 lg:items-start">
+        <div className="lg:sticky lg:top-24 lg:self-start">
           <p className="mb-3 text-xs uppercase tracking-[0.4em] text-primary">
             Reservá tu momento
           </p>
