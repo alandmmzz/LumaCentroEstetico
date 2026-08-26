@@ -2,10 +2,11 @@
 
 import {
   deleteAppointment,
-  markPaymentVerified,
+  assignStaff,
+  updatePaymentManual,
   updateStatus,
 } from "@/app/actions/appointments"
-import type { Appointment } from "@/lib/db/schema"
+import type { Appointment, Staff } from "@/lib/db/schema"
 import { formatServiceLabel, formatUYU } from "@/lib/services"
 import { useState, useTransition } from "react"
 
@@ -43,8 +44,10 @@ function formatDate(value: string) {
 
 export function AdminAppointments({
   appointments,
+  staff,
 }: {
   appointments: Appointment[]
+  staff: Staff[]
 }) {
   const [filter, setFilter] = useState("todos")
   const [isPending, startTransition] = useTransition()
@@ -87,6 +90,7 @@ export function AdminAppointments({
                 <th className="px-4 py-3 font-medium">Fecha</th>
                 <th className="px-4 py-3 font-medium">Hora</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
+                <th className="px-4 py-3 font-medium">Profesional</th>
                 <th className="px-4 py-3 font-medium">Pago</th>
                 <th className="px-4 py-3 font-medium text-right">Acciones</th>
               </tr>
@@ -115,6 +119,20 @@ export function AdminAppointments({
                     </span>
                   </td>
                   <td className="px-4 py-3">
+                    <select
+                      value={a.staffId ?? ""}
+                      onChange={(event) =>
+                        startTransition(() => assignStaff(a.id, event.target.value ? Number(event.target.value) : null))
+                      }
+                      disabled={isPending}
+                      className="rounded-md border border-input bg-card px-2 py-1 text-xs text-foreground"
+                      aria-label={`Profesional para ${a.name}`}
+                    >
+                      <option value="">Sin asignar</option>
+                      {staff.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
+                    </select>
+                  </td>
+                  <td className="px-4 py-3">
                     <span
                       className={`inline-block rounded-full px-3 py-1 text-xs ${
                         paymentStyles[a.paymentStatus] ?? paymentStyles.pendiente
@@ -131,17 +149,15 @@ export function AdminAppointments({
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
-                      {a.paymentStatus === "pendiente_verificacion" && (
-                        <button
-                          onClick={() =>
-                            startTransition(() => markPaymentVerified(a.id))
-                          }
-                          disabled={isPending}
-                          className="rounded-md border border-primary/40 px-3 py-1 text-xs text-primary transition-colors hover:bg-primary/10 disabled:opacity-60"
-                        >
-                          Confirmar pago
-                        </button>
-                      )}
+                      <input
+                        type="number"
+                        min="0"
+                        defaultValue={a.paymentReceived}
+                        onBlur={(event) => startTransition(() => updatePaymentManual(a.id, Number(event.target.value), "manual"))}
+                        className="w-24 rounded-md border border-input bg-card px-2 py-1 text-xs text-foreground"
+                        aria-label={`Pago recibido de ${a.name}`}
+                        placeholder="Pago"
+                      />
                       <select
                         value={a.status}
                         disabled={isPending}

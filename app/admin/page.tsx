@@ -1,15 +1,18 @@
-import { getAdminServiceCatalog, getAppointments } from "@/app/actions/appointments"
+import { getAdminServiceCatalog, getAppointments, getStaff } from "@/app/actions/appointments"
 import { AdminAppointments } from "@/components/admin-appointments"
 import { AdminServices } from "@/components/admin-services"
+import { AdminStaff } from "@/components/admin-staff"
+import { AdminTabs } from "@/components/admin-tabs"
 import { AdminCalendar } from "@/components/admin-calendar"
 import Link from "next/link"
 
 export const dynamic = "force-dynamic"
 
 export default async function AdminPage() {
-  const [appointments, serviceCatalog] = await Promise.all([
+  const [appointments, serviceCatalog, staffList] = await Promise.all([
     getAppointments(),
     getAdminServiceCatalog(),
+    getStaff(),
   ])
 
   const pendientes = appointments.filter((a) => a.status === "pendiente").length
@@ -57,11 +60,11 @@ export default async function AdminPage() {
           ))}
         </div>
 
-        <AdminServices catalog={serviceCatalog} />
-
-        <AdminCalendar appointments={appointments} />
-
-        <AdminAppointments appointments={appointments} />
+        <AdminTabs
+          turnos={<div className="space-y-10"><AdminCalendar appointments={appointments} /><AdminAppointments appointments={appointments} staff={staffList} /></div>}
+          servicios={<AdminServices catalog={serviceCatalog} />}
+          personal={<AdminStaff staff={staffList} />}
+        />
       </div>
     </main>
   )

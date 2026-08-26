@@ -1,12 +1,12 @@
 "use server"
 
 import { db } from "@/lib/db"
-import { appointments, serviceCategories, serviceTreatments } from "@/lib/db/schema"
+import { appointments, serviceCategories, serviceTreatments, staff } from "@/lib/db/schema"
 import { getAllServiceCatalog } from "@/lib/db/services"
 import { getServicePrice, SERVICE_CATEGORIES } from "@/lib/services"
 import { getScheduleForCategory, isOnlineCategory } from "@/lib/schedule"
 import { createMercadoPagoPreference, getMercadoPagoPayment, isMercadoPagoEnabled } from "@/lib/mercadopago"
-import { and, desc, eq, ne } from "drizzle-orm"
+import { and, asc, desc, eq, ne } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 
 export type BookingResult = { ok: boolean; error?: string; id?: number }
@@ -14,6 +14,7 @@ export type BookingResult = { ok: boolean; error?: string; id?: number }
 export async function createAppointment(formData: FormData): Promise<BookingResult> {
   const name = String(formData.get("name") ?? "").trim()
   const phone = String(formData.get("phone") ?? "").trim()
+  const email = String(formData.get("email") ?? "").trim()
   const service = String(formData.get("service") ?? "").trim()
   const appointmentDate = String(formData.get("appointmentDate") ?? "").trim()
   const appointmentTime = String(formData.get("appointmentTime") ?? "").trim()
@@ -73,6 +74,7 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
     .values({
       name,
       phone,
+      email: email || null,
       service,
       appointmentDate,
       appointmentTime,
@@ -86,6 +88,48 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
 
 export async function getAppointments() {
   return db.select().from(appointments).orderBy(desc(appointments.createdAt))
+}
+
+export async function getStaff() {
+  return db.select().from(staff).where(eq(staff.active, true)).orderBy(asc(staff.name))
+}
+
+export async function createStaff(name: string, email?: string) {
+  if (!name.trim()) return { ok: false, error: "Ingresá un nombre." }
+  await db.insert(staff).values({ name: name.trim(), email: email?.trim() || null })
+  revalidatePath("/admin")
+  return { ok: true }
+}
+
+export async function assignStaff(id: number, staffId: number | null) {
+  const appointment = await getAppointmentById(id)
+  if (!appointment) return { ok: false, error: "Turno no encontrado." }
+  await db.update(appointments).set({ staffId, status: staffId ? "confirmado" : "pendiente" }).where(eq(appointments.id, id))
+  if (staffId && appointment.email) {
+    const [person] = await db.select().from(staff).where(eq(staff.id, staffId))
+    if (person) await sendAppointmentEmail(appointment.email, appointment.name, person.name, appointment.appointmentDate, appointment.appointmentTime)
+  }
+  revalidatePath("/admin")
+  return { ok: true }
+}
+
+async function sendAppointmentEmail(to: string, clientName: string, staffName: string, date: string, time: string) {
+  const key = process.env.RESEND_API_KEY
+  const from = process.env.RESEND_FROM_EMAIL
+  if (!key || !from) return
+  await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ from, to, subject: "Tu turno está confirmado · LUMA", html: `<p>Hola ${clientName},</p><p>Tenés un turno confirmado con ${staffName} el ${date} a las ${time} hs.</p><p>LUMA Centro Estético</p>` }) })
+}
+
+export async function updatePaymentManual(id: number, amount: number, status: string) {
+  await db.update(appointments).set({ paymentReceived: Math.max(0, Math.round(amount)), paymentStatus: status }).where(eq(appointments.id, id))
+  revalidatePath("/admin")
+}
+
+export async function createManualAppointment(data: { name: string; phone: string; email?: string; service: string; date: string; time: string; price: number }) {
+  if (!data.name.trim() || !data.phone.trim() || !data.service.trim() || !data.date || !data.time) return { ok: false, error: "Completá los datos obligatorios." }
+  const [row] = await db.insert(appointments).values({ name: data.name.trim(), phone: data.phone.trim(), email: data.email?.trim() || null, service: data.service.trim(), appointmentDate: data.date, appointmentTime: data.time, price: Math.max(0, Math.round(data.price)) }).returning({ id: appointments.id })
+  revalidatePath("/admin")
+  return { ok: true, id: row.id }
 }
 
 export async function getAdminServiceCatalog() {

@@ -4,6 +4,7 @@ export const appointments = pgTable("appointments", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   phone: text("phone").notNull(),
+  email: text("email"),
   service: text("service").notNull(),
   appointmentDate: date("appointment_date").notNull(),
   appointmentTime: text("appointment_time").notNull(),
@@ -13,6 +14,8 @@ export const appointments = pgTable("appointments", {
   depositAmount: integer("deposit_amount").notNull().default(0),
   paymentMethod: text("payment_method"),
   paymentStatus: text("payment_status").notNull().default("pendiente"),
+  paymentReceived: integer("payment_received").notNull().default(0),
+  staffId: integer("staff_id"),
   mpPreferenceId: text("mp_preference_id"),
   mpPaymentId: text("mp_payment_id"),
   createdAt: timestamp("created_at").notNull().defaultNow(),
@@ -37,4 +40,13 @@ export const serviceTreatments = pgTable("service_treatments", {
   active: boolean("active").notNull().default(true),
 })
 
+export const staff = pgTable("staff", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  email: text("email"),
+  active: boolean("active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+})
+
 export type Appointment = typeof appointments.$inferSelect
+export type Staff = typeof staff.$inferSelect
