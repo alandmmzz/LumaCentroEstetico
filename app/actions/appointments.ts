@@ -138,9 +138,9 @@ export async function updatePaymentManual(id: number, amount: number, status: st
   revalidatePath("/admin")
 }
 
-export async function createManualAppointment(data: { name: string; phone: string; email?: string; service: string; date: string; time: string; price: number }) {
+export async function createManualAppointment(data: { name: string; phone: string; email?: string; service: string; date: string; time: string; price: number; staffId?: number | null }) {
   if (!data.name.trim() || !data.phone.trim() || !data.service.trim() || !data.date || !data.time) return { ok: false, error: "Completá los datos obligatorios." }
-  const [row] = await db.insert(appointments).values({ name: data.name.trim(), phone: data.phone.trim(), email: data.email?.trim() || null, service: data.service.trim(), appointmentDate: data.date, appointmentTime: data.time, price: Math.max(0, Math.round(data.price)) }).returning({ id: appointments.id })
+  const [row] = await db.insert(appointments).values({ name: data.name.trim(), phone: data.phone.trim(), email: data.email?.trim() || null, service: data.service.trim(), appointmentDate: data.date, appointmentTime: data.time, staffId: data.staffId ?? null, price: Math.max(0, Math.round(data.price)) }).returning({ id: appointments.id })
   revalidatePath("/admin")
   return { ok: true, id: row.id }
 }

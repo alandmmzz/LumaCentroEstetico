@@ -6,6 +6,7 @@ import {
   updatePaymentManual,
   updateStatus,
 } from "@/app/actions/appointments"
+import { AdminNewAppointment } from "@/components/admin-new-appointment"
 import type { Appointment, Staff } from "@/lib/db/schema"
 import { SERVICE_CATEGORIES, formatServiceLabel, formatUYU } from "@/lib/services"
 import { useState, useTransition } from "react"
@@ -83,6 +84,10 @@ export function AdminAppointments({
 
   return (
     <div>
+      <div className="mb-6 flex items-center justify-between gap-4">
+        <h2 className="font-serif text-2xl text-foreground">Turnos agendados</h2>
+        <AdminNewAppointment staff={staff} />
+      </div>
       <div className="mb-6 flex flex-wrap items-center gap-3">
         <label className="text-xs uppercase tracking-wide text-muted-foreground" htmlFor="month-filter">Mes</label>
         <input id="month-filter" type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground" />
