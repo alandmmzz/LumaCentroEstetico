@@ -95,8 +95,8 @@ export function AdminCalendar({
   const selectedList = selected ? (byDate.get(selected) ?? []) : []
 
   return (
-    <div className="mb-10 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
-      <div className="rounded-xl border border-border bg-card/60 p-6">
+    <div className="mb-10 grid min-w-0 max-w-full gap-6 overflow-hidden lg:grid-cols-[1.4fr_1fr]">
+      <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border bg-card/60 p-6">
         <div className="mb-6 flex items-center justify-between">
           <h2 className="font-serif text-2xl text-foreground">
             {MONTHS[month]} {year}
@@ -178,8 +178,8 @@ export function AdminCalendar({
         </div>
       </div>
 
-      <div className="rounded-xl border border-border bg-card/60 p-6">
-        <div className="mb-4 flex items-center gap-2 text-primary">
+      <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border bg-card/60 p-6">
+        <div className="mb-4 flex min-w-0 items-center gap-2 text-primary">
           <CalendarDays className="h-4 w-4" />
           <h3 className="text-xs uppercase tracking-[0.25em]">
             {selected ? formatLong(selected) : "Seleccioná un día"}
