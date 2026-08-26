@@ -34,12 +34,12 @@ const statusStyles: Record<string, string> = {
 
 function formatDate(value: string) {
   const d = new Date(`${value}T00:00:00`)
-  return d.toLocaleDateString("es-UY", {
-    weekday: "short",
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  })
+  return d.toLocaleDateString("es-UY", { weekday: "short", day: "2-digit", month: "short", year: "numeric" })
+}
+
+function formatDateShort(value: string) {
+  const [year, month, day] = value.split("-")
+  return `${day}/${month}/${year.slice(-2)}`
 }
 
 export function AdminAppointments({
@@ -50,15 +50,36 @@ export function AdminAppointments({
   staff: Staff[]
 }) {
   const [filter, setFilter] = useState("todos")
+  const [month, setMonth] = useState("")
   const [isPending, startTransition] = useTransition()
 
-  const filtered =
-    filter === "todos"
-      ? appointments
-      : appointments.filter((a) => a.status === filter)
+  const filtered = appointments.filter((a) =>
+    (filter === "todos" || a.status === filter) &&
+    (!month || a.appointmentDate.startsWith(month))
+  )
+
+  const monthlyIncome = filtered.reduce((total, appointment) => total + (appointment.paymentReceived ?? 0), 0)
+
+  function downloadSummary() {
+    const rows = [["Cliente", "Fecha", "Hora", "Servicio", "Profesional", "Pago recibido"], ...filtered.map((a) => [a.name, formatDateShort(a.appointmentDate), a.appointmentTime, formatServiceLabel(a.service), staff.find((p) => p.id === a.staffId)?.name ?? "Sin asignar", String(a.paymentReceived ?? 0)])]
+    const csv = rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(",")).join("\\n")
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
+    const url = URL.createObjectURL(blob)
+    const link = document.createElement("a")
+    link.href = url
+    link.download = `resumen-ingresos-${month || "todos"}.csv`
+    link.click()
+    URL.revokeObjectURL(url)
+  }
 
   return (
     <div>
+      <div className="mb-6 flex flex-wrap items-center gap-3">
+        <label className="text-xs uppercase tracking-wide text-muted-foreground" htmlFor="month-filter">Mes</label>
+        <input id="month-filter" type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground" />
+        <button type="button" onClick={downloadSummary} className="rounded-full border border-primary/40 px-4 py-2 text-xs text-primary hover:bg-primary/10">DESCARGAR CSV</button>
+        <span className="text-sm text-muted-foreground">Ingresos: <strong className="text-foreground">{formatUYU(monthlyIncome)}</strong></span>
+      </div>
       <div className="mb-6 flex flex-wrap gap-2">
         {["todos", ...STATUS_OPTIONS].map((f) => (
           <button
@@ -85,10 +106,8 @@ export function AdminAppointments({
             <thead className="bg-secondary/60 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
                 <th className="px-4 py-3 font-medium">Cliente</th>
-                <th className="px-4 py-3 font-medium">Teléfono</th>
                 <th className="px-4 py-3 font-medium">Servicio</th>
-                <th className="px-4 py-3 font-medium">Fecha</th>
-                <th className="px-4 py-3 font-medium">Hora</th>
+                <th className="px-4 py-3 font-medium">Fecha y hora</th>
                 <th className="px-4 py-3 font-medium">Estado</th>
                 <th className="px-4 py-3 font-medium">Profesional</th>
                 <th className="px-4 py-3 font-medium">Pago</th>
@@ -99,15 +118,13 @@ export function AdminAppointments({
               {filtered.map((a) => (
                 <tr key={a.id} className="bg-card/40">
                   <td className="px-4 py-3 font-medium text-foreground">
-                    {a.name}
+                    <div>{a.name}</div>
+                    <div className="mt-1 text-xs font-normal text-muted-foreground">{a.phone}</div>
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">{a.phone}</td>
                   <td className="max-w-xs px-4 py-3 text-foreground">{formatServiceLabel(a.service)}</td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {formatDate(a.appointmentDate)}
-                  </td>
-                  <td className="px-4 py-3 text-muted-foreground">
-                    {a.appointmentTime} hs
+                    <div>{formatDateShort(a.appointmentDate)}</div>
+                    <div className="mt-1 text-xs">{a.appointmentTime} hs</div>
                   </td>
                   <td className="px-4 py-3">
                     <span
@@ -140,12 +157,7 @@ export function AdminAppointments({
                     >
                       {paymentLabels[a.paymentStatus] ?? a.paymentStatus}
                     </span>
-                    {a.depositAmount > 0 && (
-                      <span className="mt-1 block text-xs tabular-nums text-muted-foreground">
-                        {formatUYU(a.depositAmount)} ({a.depositPercentage}%)
-                        {a.paymentMethod ? ` · ${a.paymentMethod}` : ""}
-                      </span>
-                    )}
+                    <span className="mt-1 block text-xs tabular-nums text-muted-foreground">{formatUYU(a.paymentReceived ?? 0)} recibido</span>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
