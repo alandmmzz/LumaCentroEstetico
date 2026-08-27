@@ -44,6 +44,7 @@ export const staff = pgTable("staff", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   email: text("email"),
+  adminAccess: boolean("admin_access").notNull().default(false),
   active: boolean("active").notNull().default(true),
   createdAt: timestamp("created_at").notNull().defaultNow(),
 })

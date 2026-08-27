@@ -116,9 +116,17 @@ export async function getStaff() {
   return db.select().from(staff).where(eq(staff.active, true)).orderBy(asc(staff.name))
 }
 
-export async function createStaff(name: string, email?: string) {
+export async function createStaff(name: string, email?: string, adminAccess = false) {
   if (!name.trim()) return { ok: false, error: "Ingresá un nombre." }
-  await db.insert(staff).values({ name: name.trim(), email: email?.trim() || null })
+  await db.insert(staff).values({ name: name.trim(), email: email?.trim() || null, adminAccess })
+  revalidatePath("/admin")
+  return { ok: true }
+}
+
+export async function updateStaffAdminAccess(id: number, adminAccess: boolean) {
+  const [person] = await db.select({ email: staff.email }).from(staff).where(eq(staff.id, id))
+  if (!person?.email) return { ok: false, error: "La persona necesita un email para tener acceso admin." }
+  await db.update(staff).set({ adminAccess }).where(eq(staff.id, id))
   revalidatePath("/admin")
   return { ok: true }
 }

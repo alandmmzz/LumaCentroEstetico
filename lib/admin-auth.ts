@@ -1,6 +1,9 @@
 import "server-only"
 import { createHmac, timingSafeEqual } from "node:crypto"
 import { cookies } from "next/headers"
+import { db } from "@/lib/db"
+import { staff } from "@/lib/db/schema"
+import { and, eq } from "drizzle-orm"
 
 const COOKIE_NAME = "luma_admin_session"
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "alandmarp11@gmail.com,julietaandrioti5@gmail.com,roxipe9@gmail.com")
@@ -16,8 +19,11 @@ export function getAdminEmails() {
   return ADMIN_EMAILS
 }
 
-export function isAdminEmail(email: string) {
-  return ADMIN_EMAILS.includes(email.toLowerCase().trim())
+export async function isAdminEmail(email: string) {
+  const normalized = email.toLowerCase().trim()
+  if (ADMIN_EMAILS.includes(normalized)) return true
+  const [person] = await db.select({ id: staff.id }).from(staff).where(and(eq(staff.email, normalized), eq(staff.adminAccess, true), eq(staff.active, true)))
+  return Boolean(person)
 }
 
 export function createAdminToken(email: string, expiresAt: number) {
