@@ -65,6 +65,11 @@ export const SERVICES = SERVICE_CATEGORIES.map((category) => ({
 export const SERVICE_NAMES = SERVICE_CATEGORIES.map((category) => category.name)
 export const DEPOSIT_OPTIONS = [30, 50, 80, 100] as const
 
+// Interruptor de la seña, controlado por variable de entorno en Vercel:
+// NEXT_PUBLIC_DEPOSIT_ENABLED = "false" -> se salta la seña (botón dice "CONTINUAR")
+// NEXT_PUBLIC_DEPOSIT_ENABLED = "true" (o si no existe) -> pide la seña como siempre
+export const DEPOSIT_ENABLED = process.env.NEXT_PUBLIC_DEPOSIT_ENABLED !== "false"
+
 export function getServicePrice(service: string): number {
   try {
     const selected = JSON.parse(service) as { category?: string; treatmentIds?: string[] }
