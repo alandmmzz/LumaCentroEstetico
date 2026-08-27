@@ -1,3 +1,8 @@
+import { Instagram, MessageCircle } from "lucide-react"
+import { whatsappUrl } from "@/lib/schedule"
+
+const INSTAGRAM_URL = "https://instagram.com/luma_centroestetico"
+
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-secondary/40 py-14">
@@ -16,7 +21,27 @@ export function SiteFooter() {
         <p className="mt-6 text-xs tracking-wide text-muted-foreground">
           San Martín 2825 · Reducto · Montevideo, Uruguay
         </p>
-        <p className="mt-2 text-xs tracking-wide text-muted-foreground">
+        <div className="mt-4 flex items-center justify-center gap-3">
+          <a
+            href={INSTAGRAM_URL}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Seguinos en Instagram"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+          >
+            <Instagram className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+          </a>
+          <a
+            href={whatsappUrl()}
+            target="_blank"
+            rel="noreferrer"
+            aria-label="Escribinos por WhatsApp"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
+          >
+            <MessageCircle className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
+          </a>
+        </div>
+        <p className="mt-3 text-xs tracking-wide text-muted-foreground">
           @luma_centroestetico
         </p>
       </div>
