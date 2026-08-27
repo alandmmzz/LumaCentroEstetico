@@ -140,13 +140,25 @@ type AppointmentEmail = { to: string; clientName: string; email?: string; phone:
 async function sendResendEmail(to: string, subject: string, html: string) {
   const key = process.env.RESEND_API_KEY
   const from = process.env.RESEND_FROM_EMAIL ?? "no-reply@luma.com.uy"
-  if (!key || !to) return
+  if (!key) {
+    console.error("[v0] Resend email skipped: RESEND_API_KEY is not available in this deployment")
+    return
+  }
+  if (!to) {
+    console.error("[v0] Resend email skipped: recipient is empty")
+    return
+  }
   try {
-    await fetch("https://api.resend.com/emails", {
+    const response = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
       body: JSON.stringify({ from, to, subject, html }),
     })
+    if (!response.ok) {
+      console.error("[v0] Resend rejected email", { status: response.status, details: await response.text() })
+    } else {
+      console.log("[v0] Resend email accepted", { to, subject })
+    }
   } catch (error) {
     console.error("[v0] Resend email failed:", error)
   }
