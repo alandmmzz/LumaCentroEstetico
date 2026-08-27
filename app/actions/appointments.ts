@@ -95,6 +95,15 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
     })
     .returning({ id: appointments.id })
 
+  await sendAppointmentRequestEmail({
+    to: process.env.ADMIN_EMAIL ?? "alandmarp11@gmail.com",
+    clientName: name,
+    email,
+    phone,
+    service,
+    date: appointmentDate,
+    time: appointmentTime,
+  })
   revalidatePath("/admin")
   return { ok: true, id: row.id }
 }
@@ -118,7 +127,7 @@ export async function assignStaff(id: number, staffId: number | null) {
   const appointment = await getAppointmentById(id)
   if (!appointment) return { ok: false, error: "Turno no encontrado." }
   await db.update(appointments).set({ staffId, status: staffId ? "confirmado" : "pendiente" }).where(eq(appointments.id, id))
-  if (staffId && appointment.email) {
+  if (staffId && appointment.email && appointment.status !== "confirmado") {
     const [person] = await db.select().from(staff).where(eq(staff.id, staffId))
     if (person) await sendAppointmentEmail(appointment.email, appointment.name, person.name, appointment.appointmentDate, appointment.appointmentTime)
   }
@@ -126,11 +135,29 @@ export async function assignStaff(id: number, staffId: number | null) {
   return { ok: true }
 }
 
-async function sendAppointmentEmail(to: string, clientName: string, staffName: string, date: string, time: string) {
+type AppointmentEmail = { to: string; clientName: string; email?: string; phone: string; service: string; date: string; time: string }
+
+async function sendResendEmail(to: string, subject: string, html: string) {
   const key = process.env.RESEND_API_KEY
-  const from = process.env.RESEND_FROM_EMAIL
-  if (!key || !from) return
-  await fetch("https://api.resend.com/emails", { method: "POST", headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" }, body: JSON.stringify({ from, to, subject: "Tu turno está confirmado · LUMA", html: `<p>Hola ${clientName},</p><p>Tenés un turno confirmado con ${staffName} el ${date} a las ${time} hs.</p><p>LUMA Centro Estético</p>` }) })
+  const from = process.env.RESEND_FROM_EMAIL ?? "no-reply@luma.com.uy"
+  if (!key || !to) return
+  try {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from, to, subject, html }),
+    })
+  } catch (error) {
+    console.error("[v0] Resend email failed:", error)
+  }
+}
+
+async function sendAppointmentRequestEmail(data: AppointmentEmail) {
+  await sendResendEmail(data.to, "Nueva solicitud de turno · LUMA", `<p>Nueva solicitud de turno de <strong>${data.clientName}</strong>.</p><p>Servicio: ${data.service}<br>Fecha: ${data.date}<br>Hora: ${data.time}<br>Teléfono: ${data.phone}<br>Email: ${data.email || "No informado"}</p>`)
+}
+
+async function sendAppointmentEmail(to: string, clientName: string, staffName: string, date: string, time: string) {
+  await sendResendEmail(to, "Tu turno está confirmado · LUMA", `<p>Hola ${clientName},</p><p>Tenés un turno confirmado con ${staffName} el ${date} a las ${time} hs.</p><p>LUMA Centro Estético</p>`)
 }
 
 export async function updatePaymentManual(id: number, amount: number, status: string) {
@@ -209,6 +236,10 @@ export async function updateStatus(id: number, status: string) {
     paymentReceived: normalizedStatus === "pago" ? (appointment.paymentReceived || appointment.price) : appointment.paymentReceived,
     paymentStatus: normalizedStatus === "pago" ? "pagado" : "pendiente",
   }).where(eq(appointments.id, id))
+  if (normalizedStatus === "confirmado" && appointment.status !== "confirmado" && appointment.email) {
+    const person = appointment.staffId ? (await db.select().from(staff).where(eq(staff.id, appointment.staffId)))[0] : null
+    await sendAppointmentEmail(appointment.email, appointment.name, person?.name ?? "nuestro equipo", appointment.appointmentDate, appointment.appointmentTime)
+  }
   revalidatePath("/admin")
   return { ok: true }
 }
