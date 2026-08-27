@@ -139,8 +139,8 @@ type AppointmentEmail = { to: string; clientName: string; email?: string; phone:
 
 async function sendResendEmail(to: string, subject: string, html: string) {
   const key = process.env.RESEND_API_KEY
-  const from = process.env.RESEND_FROM_EMAIL
-  if (!key || !from || !to) return
+  const from = process.env.RESEND_FROM_EMAIL ?? "no-reply@luma.com.uy"
+  if (!key || !to) return
   try {
     await fetch("https://api.resend.com/emails", {
       method: "POST",
