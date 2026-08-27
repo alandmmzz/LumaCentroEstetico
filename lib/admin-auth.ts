@@ -39,13 +39,16 @@ export function adminMagicLink(email: string) {
 
 export async function sendAdminMagicLink(email: string, origin: string) {
   const key = process.env.RESEND_API_KEY
-  const from = process.env.RESEND_FROM_EMAIL
-  if (!key || !from) return false
+  const from = process.env.RESEND_FROM_EMAIL ?? "no-reply@luma.com.uy"
+  if (!key) return false
   const link = `${origin}${adminMagicLink(email)}`
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
     body: JSON.stringify({ from, to: email, subject: "Acceso al panel de LUMA", html: `<p>Solicitaste acceder al panel de administración de LUMA.</p><p><a href="${link}">Ingresar al panel</a></p><p>Este enlace vence en 15 minutos y es de un solo uso recomendado.</p>` }),
   })
+  if (!response.ok) {
+    console.error("[v0] Admin magic link email rejected by Resend", { status: response.status })
+  }
   return response.ok
 }
