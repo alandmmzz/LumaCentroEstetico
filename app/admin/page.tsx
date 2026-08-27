@@ -5,10 +5,14 @@ import { AdminStaff } from "@/components/admin-staff"
 import { AdminTabs } from "@/components/admin-tabs"
 import { AdminCalendar } from "@/components/admin-calendar"
 import Link from "next/link"
+import { isAdminAuthenticated } from "@/lib/admin-auth"
+import { AdminAccessForm } from "@/components/admin-access-form"
 
 export const dynamic = "force-dynamic"
 
 export default async function AdminPage() {
+  if (!(await isAdminAuthenticated())) return <AdminAccessForm />
+
   const [appointments, serviceCatalog, staffList] = await Promise.all([
     getAppointments(),
     getAdminServiceCatalog(),
