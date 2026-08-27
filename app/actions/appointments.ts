@@ -3,7 +3,7 @@
 import { db } from "@/lib/db"
 import { appointments, serviceCategories, serviceTreatments, staff } from "@/lib/db/schema"
 import { getAllServiceCatalog } from "@/lib/db/services"
-import { getServicePrice, SERVICE_CATEGORIES } from "@/lib/services"
+import { formatServiceLabel, getServicePrice, SERVICE_CATEGORIES } from "@/lib/services"
 import { getScheduleForCategory, isOnlineCategory } from "@/lib/schedule"
 import { createMercadoPagoPreference, getMercadoPagoPayment, isMercadoPagoEnabled } from "@/lib/mercadopago"
 import { and, asc, desc, eq, ne } from "drizzle-orm"
@@ -145,6 +145,68 @@ export async function assignStaff(id: number, staffId: number | null) {
 
 type AppointmentEmail = { to: string; clientName: string; email?: string; phone: string; service: string; date: string; time: string }
 
+function formatEmailDate(dateKey: string) {
+  try {
+    return new Date(`${dateKey}T00:00:00`).toLocaleDateString("es-UY", {
+      weekday: "long",
+      day: "numeric",
+      month: "long",
+    })
+  } catch {
+    return dateKey
+  }
+}
+
+// Layout base con la identidad de LUMA para todos los emails transaccionales.
+function emailLayout(options: { preheader: string; eyebrow: string; heading: string; bodyHtml: string }) {
+  const { preheader, eyebrow, heading, bodyHtml } = options
+  return `<!DOCTYPE html>
+<html lang="es">
+  <body style="margin:0;padding:0;background-color:#f2ece1;font-family:Georgia,'Times New Roman',serif;">
+    <span style="display:none;font-size:1px;color:#f2ece1;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${preheader}</span>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f2ece1;padding:32px 16px;">
+      <tr>
+        <td align="center">
+          <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:520px;background-color:#fffdfa;border-radius:16px;overflow:hidden;border:1px solid #e7ddcc;">
+            <tr>
+              <td style="background-color:#b8976b;padding:28px 32px;text-align:center;">
+                <span style="display:block;font-family:Georgia,serif;font-size:22px;letter-spacing:6px;color:#fffdfa;">LUMA</span>
+                <span style="display:block;margin-top:4px;font-family:Arial,sans-serif;font-size:10px;letter-spacing:4px;color:#fffdfa;opacity:0.9;">CENTRO ESTÉTICO</span>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:36px 32px 8px 32px;text-align:center;">
+                <span style="display:block;font-family:Arial,sans-serif;font-size:11px;letter-spacing:3px;text-transform:uppercase;color:#b8976b;">${eyebrow}</span>
+                <h1 style="margin:10px 0 0 0;font-family:Georgia,serif;font-weight:normal;font-size:26px;color:#4a3f35;">${heading}</h1>
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:16px 32px 8px 32px;font-family:Arial,sans-serif;font-size:15px;line-height:1.7;color:#4a3f35;">
+                ${bodyHtml}
+              </td>
+            </tr>
+            <tr>
+              <td style="padding:28px 32px 32px 32px;text-align:center;border-top:1px solid #eee4d3;margin-top:24px;">
+                <span style="display:block;font-family:Georgia,serif;font-size:14px;color:#4a3f35;">LUMA Centro Estético</span>
+                <span style="display:block;margin-top:4px;font-family:Arial,sans-serif;font-style:italic;font-size:12px;color:#8a7862;">Iluminamos tu belleza, potenciamos tu esencia.</span>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>`
+}
+
+function detailRow(icon: string, label: string, value: string) {
+  return `<tr>
+    <td style="padding:8px 0;font-family:Arial,sans-serif;font-size:14px;color:#4a3f35;" width="20">${icon}</td>
+    <td style="padding:8px 0;font-family:Arial,sans-serif;font-size:14px;color:#8a7862;" width="90">${label}</td>
+    <td style="padding:8px 0;font-family:Arial,sans-serif;font-size:14px;color:#4a3f35;font-weight:bold;">${value}</td>
+  </tr>`
+}
+
 async function sendResendEmail(to: string, subject: string, html: string) {
   const key = process.env.RESEND_API_KEY
   const from = process.env.RESEND_FROM_EMAIL ?? "no-reply@luma.com.uy"
@@ -173,11 +235,53 @@ async function sendResendEmail(to: string, subject: string, html: string) {
 }
 
 async function sendAppointmentRequestEmail(data: AppointmentEmail) {
-  await sendResendEmail(data.to, "Nueva solicitud de turno · LUMA", `<p>Nueva solicitud de turno de <strong>${data.clientName}</strong>.</p><p>Servicio: ${data.service}<br>Fecha: ${data.date}<br>Hora: ${data.time}<br>Teléfono: ${data.phone}<br>Email: ${data.email || "No informado"}</p>`)
+  const serviceLabel = formatServiceLabel(data.service)
+  const bodyHtml = `
+    <p style="margin:0 0 20px 0;">Llegó una nueva solicitud de turno de <strong>${data.clientName}</strong>. Estos son los datos:</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9f4ea;border-radius:10px;padding:4px 16px;margin-bottom:8px;">
+      ${detailRow("✨", "Servicio", serviceLabel)}
+      ${detailRow("📅", "Fecha", formatEmailDate(data.date))}
+      ${detailRow("⏰", "Hora", `${data.time} hs`)}
+      ${detailRow("📞", "Teléfono", data.phone)}
+      ${detailRow("✉️", "Email", data.email || "No informado")}
+    </table>
+    <p style="margin:20px 0 0 0;color:#8a7862;font-size:13px;">Asignale un profesional desde el panel de administración para confirmar el turno.</p>
+  `
+  await sendResendEmail(
+    data.to,
+    "Nueva solicitud de turno · LUMA",
+    emailLayout({
+      preheader: `Nueva solicitud de ${data.clientName} para ${serviceLabel}`,
+      eyebrow: "Panel de reservas",
+      heading: "Nueva solicitud de turno",
+      bodyHtml,
+    }),
+  )
 }
 
 async function sendAppointmentEmail(to: string, clientName: string, staffName: string, date: string, time: string) {
-  await sendResendEmail(to, "Tu turno está confirmado · LUMA", `<p>Hola ${clientName},</p><p>Tenés un turno confirmado con ${staffName} el ${date} a las ${time} hs.</p><p>LUMA Centro Estético</p>`)
+  const bodyHtml = `
+    <p style="margin:0 0 20px 0;">Hola ${clientName} ✨</p>
+    <p style="margin:0 0 20px 0;">Nos alegra confirmar tu turno en <strong>LUMA Centro Estético</strong>.</p>
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9f4ea;border-radius:10px;padding:4px 16px;margin-bottom:8px;">
+      ${detailRow("📅", "Fecha", formatEmailDate(date))}
+      ${detailRow("⏰", "Hora", `${time} hs`)}
+      ${detailRow("💛", "Con", staffName)}
+    </table>
+    <p style="margin:20px 0 0 0;">Te esperamos para compartir un momento pensado especialmente para vos.</p>
+    <p style="margin:16px 0 0 0;">Si necesitás realizar algún cambio o tenés alguna consulta, podés comunicarte con nosotras.</p>
+    <p style="margin:20px 0 0 0;">Con cariño,</p>
+  `
+  await sendResendEmail(
+    to,
+    "Tu turno está confirmado · LUMA",
+    emailLayout({
+      preheader: `Tu turno del ${formatEmailDate(date)} a las ${time} hs quedó confirmado`,
+      eyebrow: "Turno confirmado",
+      heading: "¡Te esperamos! 🤍",
+      bodyHtml,
+    }),
+  )
 }
 
 export async function updatePaymentManual(id: number, amount: number, status: string) {
