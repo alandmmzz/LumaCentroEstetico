@@ -20,7 +20,10 @@ export function createAdminToken(email: string, expiresAt: number) {
 
 export function verifyAdminToken(token: string | undefined) {
   if (!token) return false
-  const [email, expires, provided] = token.split(".")
+  const parts = token.split(".")
+  const provided = parts.pop()
+  const expires = parts.pop()
+  const email = parts.join(".")
   if (!email || !expires || !provided || !isAdminEmail(email) || Number(expires) < Date.now()) return false
   const expected = signature(`${email}.${expires}`)
   return provided.length === expected.length && timingSafeEqual(Buffer.from(provided), Buffer.from(expected))
