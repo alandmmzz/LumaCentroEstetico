@@ -31,13 +31,13 @@ export function createAdminToken(email: string, expiresAt: number) {
   return `${payload}.${signature(payload)}`
 }
 
-export function verifyAdminToken(token: string | undefined) {
+export async function verifyAdminToken(token: string | undefined) {
   if (!token) return false
   const parts = token.split(".")
   const provided = parts.pop()
   const expires = parts.pop()
   const email = parts.join(".")
-  if (!email || !expires || !provided || !isAdminEmail(email) || Number(expires) < Date.now()) return false
+  if (!email || !expires || !provided || !(await isAdminEmail(email)) || Number(expires) < Date.now()) return false
   const expected = signature(`${email}.${expires}`)
   return provided.length === expected.length && timingSafeEqual(Buffer.from(provided), Buffer.from(expected))
 }
