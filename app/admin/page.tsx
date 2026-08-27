@@ -7,6 +7,7 @@ import { AdminCalendar } from "@/components/admin-calendar"
 import Link from "next/link"
 import { isAdminAuthenticated } from "@/lib/admin-auth"
 import { AdminAccessForm } from "@/components/admin-access-form"
+import { getAdminEmails } from "@/lib/admin-auth"
 
 export const dynamic = "force-dynamic"
 
@@ -42,7 +43,7 @@ export default async function AdminPage() {
         <AdminTabs
           turnos={<div className="space-y-10"><AdminCalendar appointments={appointments} /><AdminAppointments appointments={appointments} staff={staffList} /></div>}
           servicios={<AdminServices catalog={serviceCatalog} />}
-          personal={<AdminStaff staff={staffList} />}
+          personal={<AdminStaff staff={staffList} adminEmails={getAdminEmails()} />}
         />
       </div>
     </main>

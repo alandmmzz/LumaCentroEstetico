@@ -3,14 +3,21 @@ import { createHmac, timingSafeEqual } from "node:crypto"
 import { cookies } from "next/headers"
 
 const COOKIE_NAME = "luma_admin_session"
-const ADMIN_EMAIL = (process.env.ADMIN_EMAIL ?? "alandmarp11@gmail.com").toLowerCase().trim()
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? process.env.ADMIN_EMAIL ?? "alandmarp11@gmail.com,julietaandrioti5@gmail.com,roxipe9@gmail.com")
+  .split(",")
+  .map((email) => email.toLowerCase().trim())
+  .filter(Boolean)
 
 function signature(value: string) {
   return createHmac("sha256", process.env.BETTER_AUTH_SECRET!).update(value).digest("base64url")
 }
 
+export function getAdminEmails() {
+  return ADMIN_EMAILS
+}
+
 export function isAdminEmail(email: string) {
-  return email.toLowerCase().trim() === ADMIN_EMAIL
+  return ADMIN_EMAILS.includes(email.toLowerCase().trim())
 }
 
 export function createAdminToken(email: string, expiresAt: number) {
