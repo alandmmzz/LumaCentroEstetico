@@ -24,7 +24,7 @@ export default async function AdminPage() {
 
   return (
     <main className="min-h-screen bg-background">
-      <div className="mx-auto min-w-0 max-w-6xl overflow-x-hidden px-6 py-12">
+      <div className="mx-auto min-w-0 max-w-6xl overflow-x-hidden px-4 py-8 sm:px-6 sm:py-12">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="text-xs uppercase tracking-[0.4em] text-primary">
