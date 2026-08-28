@@ -24,4 +24,13 @@ export function catalogPrice(selection: string, catalog: ServiceCatalog | Awaite
     const category = catalog.find((item) => item.name === parsed.category)
     return category?.treatments.reduce((sum, treatment) => parsed.treatmentIds.includes(String(treatment.id)) ? sum + (treatment.promoPrice ?? treatment.price ?? 0) : sum, 0) ?? 0
   } catch { return 0 }
-} 
+}
+
+export function catalogServiceLabel(selection: string, catalog: ServiceCatalog | Awaited<ReturnType<typeof getAllServiceCatalog>>) {
+  try {
+    const parsed = JSON.parse(selection) as { category?: string; treatmentIds?: string[] }
+    const category = catalog.find((item) => item.name === parsed.category)
+    const names = category?.treatments.filter((treatment) => parsed.treatmentIds?.includes(String(treatment.id))).map((treatment) => treatment.name)
+    return names?.length ? `${parsed.category}: ${names.join(", ")}` : parsed.category ?? selection
+  } catch { return selection }
+}

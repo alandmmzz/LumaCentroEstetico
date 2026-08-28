@@ -8,7 +8,8 @@ import {
 } from "@/app/actions/appointments"
 import { AdminNewAppointment } from "@/components/admin-new-appointment"
 import type { Appointment, Staff } from "@/lib/db/schema"
-import { SERVICE_CATEGORIES, formatServiceLabel, formatUYU } from "@/lib/services"
+import { SERVICE_CATEGORIES, formatUYU } from "@/lib/services"
+import type { ServiceCatalog } from "@/lib/db/services"
 import { Filter, Download, Plus, X } from "lucide-react"
 import { useState, useTransition } from "react"
 
@@ -41,6 +42,17 @@ function getServiceCategory(value: string) {
   }
 }
 
+function formatCatalogServiceLabel(value: string, catalog: ServiceCatalog) {
+  try {
+    const selected = JSON.parse(value) as { category?: string; treatmentIds?: string[] }
+    const category = catalog.find((item) => item.name === selected.category)
+    const names = category?.treatments.filter((treatment) => selected.treatmentIds?.includes(String(treatment.id))).map((treatment) => treatment.name)
+    return names?.length ? `${selected.category}: ${names.join(", ")}` : selected.category ?? value
+  } catch {
+    return value
+  }
+}
+
 function formatDateShort(value: string) {
   const [year, month, day] = value.split("-")
   return `${day}/${month}/${year.slice(-2)}`
@@ -49,9 +61,11 @@ function formatDateShort(value: string) {
 export function AdminAppointments({
   appointments,
   staff,
+  catalog,
 }: {
   appointments: Appointment[]
   staff: Staff[]
+  catalog: ServiceCatalog
 }) {
   const [filter, setFilter] = useState("todos")
   const [serviceFilter, setServiceFilter] = useState("todos")
@@ -73,7 +87,7 @@ export function AdminAppointments({
   const monthlyIncome = filtered.reduce((total, appointment) => total + (appointment.status === "pago" ? (paymentAmounts[appointment.id] ?? appointment.paymentReceived ?? appointment.price) : 0), 0)
 
   function downloadSummary() {
-    const rows = [["Cliente", "Fecha", "Hora", "Servicio", "Profesional", "Pago recibido"], ...filtered.map((a) => [a.name, formatDateShort(a.appointmentDate), a.appointmentTime, formatServiceLabel(a.service), staff.find((p) => p.id === a.staffId)?.name ?? "Sin asignar", String(paymentAmounts[a.id] ?? a.price)])]
+    const rows = [["Cliente", "Fecha", "Hora", "Servicio", "Profesional", "Pago recibido"], ...filtered.map((a) => [a.name, formatDateShort(a.appointmentDate), a.appointmentTime, formatCatalogServiceLabel(a.service, catalog), staff.find((p) => p.id === a.staffId)?.name ?? "Sin asignar", String(paymentAmounts[a.id] ?? a.price)])]
     const csv = rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(",")).join("\\n")
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
     const url = URL.createObjectURL(blob)
@@ -145,7 +159,7 @@ export function AdminAppointments({
                     <div>{a.name}</div>
                     <div className="mt-1 text-xs font-normal text-muted-foreground">{a.phone}</div>
                   </td>
-                  <td className="max-w-xs px-4 py-3 text-foreground"><div>{formatServiceLabel(a.service)}</div><div className="mt-1 text-xs tabular-nums text-primary">Sugerido: {formatUYU(a.price)}</div></td>
+                  <td className="max-w-xs px-4 py-3 text-foreground"><div>{formatCatalogServiceLabel(a.service, catalog)}</div><div className="mt-1 text-xs tabular-nums text-primary">Sugerido: {formatUYU(a.price)}</div></td>
                   <td className="px-4 py-3 text-muted-foreground">
                     <div>{formatDateShort(a.appointmentDate)}</div>
                     <div className="mt-1 text-xs">{a.appointmentTime} hs</div>
