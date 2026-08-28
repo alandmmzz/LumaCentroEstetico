@@ -2,8 +2,8 @@
 
 import { db } from "@/lib/db"
 import { appointments, serviceCategories, serviceTreatments, serviceSchedules, staff } from "@/lib/db/schema"
-import { getAllServiceCatalog } from "@/lib/db/services"
-import { formatServiceLabel, getServicePrice, SERVICE_CATEGORIES } from "@/lib/services"
+import { catalogPrice, getAllServiceCatalog } from "@/lib/db/services"
+import { formatServiceLabel } from "@/lib/services"
 import { getScheduleForCategory, isOnlineCategory, isTimeAvailable, whatsappUrl } from "@/lib/schedule"
 import { createMercadoPagoPreference, getMercadoPagoPayment, isMercadoPagoEnabled } from "@/lib/mercadopago"
 import { and, asc, desc, eq, ne } from "drizzle-orm"
@@ -38,12 +38,13 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
   } catch {
     return { ok: false, error: "Seleccioná un tratamiento válido." }
   }
-  const category = SERVICE_CATEGORIES.find((item) => item.name === selection.category)
+  const catalog = await getAllServiceCatalog()
+  const category = catalog.find((item) => item.name === selection.category)
   if (!isOnlineCategory(selection.category)) {
     return { ok: false, error: "Esta categoría se coordina por WhatsApp." }
   }
-  const validIds = new Set(category?.treatments.map((treatment) => treatment.id) ?? [])
-  if (!category || !Array.isArray(selection.treatmentIds) || selection.treatmentIds.length === 0 || selection.treatmentIds.some((id) => !validIds.has(id as never))) {
+  const validIds = new Set(category?.treatments.map((treatment) => String(treatment.id)) ?? [])
+  if (!category || !Array.isArray(selection.treatmentIds) || selection.treatmentIds.length === 0 || selection.treatmentIds.some((id) => !validIds.has(String(id)))) {
     return { ok: false, error: "Seleccioná al menos un tratamiento válido." }
   }
 
@@ -74,7 +75,7 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
     return { ok: false, error: "Ese horario se superpone con otro turno o supera la capacidad disponible." }
   }
 
-  const price = getServicePrice(service)
+  const price = catalogPrice(service, catalog)
   if (price <= 0) {
     return { ok: false, error: "Para Depilación, consultá el precio antes de reservar." }
   }
