@@ -2,11 +2,12 @@
 
 import { createManualAppointment } from "@/app/actions/appointments"
 import { SERVICE_CATEGORIES, formatUYU } from "@/lib/services"
+import type { OnlineCategory } from "@/lib/schedule"
 import { useState, useTransition } from "react"
 
 export function AdminNewAppointment({ staff }: { staff: { id: number; name: string }[] }) {
   const [open, setOpen] = useState(false)
-  const [category, setCategory] = useState(SERVICE_CATEGORIES[0].name)
+  const [category, setCategory] = useState<OnlineCategory>(SERVICE_CATEGORIES[0].name as OnlineCategory)
   const [treatments, setTreatments] = useState<string[]>([SERVICE_CATEGORIES[0].treatments[0].id])
   const [isPending, startTransition] = useTransition()
   const selectedCategory = SERVICE_CATEGORIES.find((item) => item.name === category) ?? SERVICE_CATEGORIES[0]
@@ -14,7 +15,7 @@ export function AdminNewAppointment({ staff }: { staff: { id: number; name: stri
 
   function selectCategory(value: string) {
     const next = SERVICE_CATEGORIES.find((item) => item.name === value) ?? SERVICE_CATEGORIES[0]
-    setCategory(next.name)
+    setCategory(next.name as OnlineCategory)
     setTreatments(next.treatments[0] ? [next.treatments[0].id] : [])
   }
 
