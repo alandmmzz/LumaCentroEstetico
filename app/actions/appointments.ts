@@ -1,7 +1,7 @@
 "use server"
 
 import { db } from "@/lib/db"
-import { appointments, serviceCategories, serviceTreatments, staff } from "@/lib/db/schema"
+import { appointments, serviceCategories, serviceTreatments, serviceSchedules, staff } from "@/lib/db/schema"
 import { getAllServiceCatalog } from "@/lib/db/services"
 import { formatServiceLabel, getServicePrice, SERVICE_CATEGORIES } from "@/lib/services"
 import { getScheduleForCategory, isOnlineCategory, isTimeAvailable, whatsappUrl } from "@/lib/schedule"
@@ -103,6 +103,26 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
   })
   revalidatePath("/admin")
   return { ok: true, id: row.id }
+}
+
+export async function getAvailableSchedule(category: string) {
+  const rows = await getServiceSchedules()
+  return rows.filter((row) => row.serviceCategory === category).map((row) => row.startTime)
+}
+
+export async function getServiceSchedules() {
+  const rows = await db.select().from(serviceSchedules).orderBy(asc(serviceSchedules.serviceCategory), asc(serviceSchedules.startTime))
+  if (rows.length) return rows
+  return Object.entries({ Nails: ["09:00", "13:00", "16:00", "19:00"], "Pedicuría": ["09:00", "13:00", "16:00", "19:00"], "Cosmetología": ["09:00", "10:30", "12:00", "13:30", "15:00", "16:30", "18:00"] }).flatMap(([serviceCategory, times]) => times.map((startTime) => ({ id: 0, serviceCategory, startTime, endTime: startTime })))
+}
+
+export async function updateServiceSchedules(serviceCategory: string, times: string[]) {
+  const valid = times.filter((time) => /^([01]\\d|2[0-3]):[0-5]\\d$/.test(time)).sort()
+  await db.delete(serviceSchedules).where(eq(serviceSchedules.serviceCategory, serviceCategory))
+  if (valid.length) await db.insert(serviceSchedules).values(valid.map((startTime) => ({ serviceCategory, startTime, endTime: startTime })))
+  revalidatePath("/admin")
+  revalidatePath("/")
+  return { ok: true }
 }
 
 export async function getAppointments() {

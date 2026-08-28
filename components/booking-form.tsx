@@ -1,6 +1,6 @@
 "use client"
 
-import { createAppointment, getBookedTimes } from "@/app/actions/appointments"
+import { createAppointment, getAvailableSchedule, getBookedTimes } from "@/app/actions/appointments"
 import { DayPicker } from "@/components/day-picker"
 import { DEPOSIT_ENABLED, SERVICE_CATEGORIES, formatUYU } from "@/lib/services"
 import { getScheduleForCategory, isOnlineCategory, whatsappUrl } from "@/lib/schedule"
@@ -25,6 +25,7 @@ export function BookingForm() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null)
   const [selectedTreatments, setSelectedTreatments] = useState<string[]>([])
   const [bookedTimes, setBookedTimes] = useState<string[]>([])
+  const [availableSchedule, setAvailableSchedule] = useState<string[]>([])
   const [confirmed, setConfirmed] = useState(false)
 
   useEffect(() => {
@@ -36,7 +37,7 @@ export function BookingForm() {
       setIsLoadingTimes(false)
       return
     }
-    getBookedTimes(selectedDate, selectedCategory).then(setBookedTimes).finally(() => setIsLoadingTimes(false))
+    Promise.all([getBookedTimes(selectedDate, selectedCategory), getAvailableSchedule(selectedCategory)]).then(([booked, schedule]) => { setBookedTimes(booked); setAvailableSchedule(schedule) }).finally(() => setIsLoadingTimes(false))
   }, [selectedDate, selectedCategory])
 
   const category = SERVICE_CATEGORIES.find((item) => item.name === selectedCategory)
@@ -127,7 +128,7 @@ export function BookingForm() {
       ) : (
         <>
           <div><p className="mb-2 text-sm text-foreground">Elegí el día</p><DayPicker selected={selectedDate} onSelect={setSelectedDate} /></div>
-          <div><p className="mb-2 text-sm text-foreground">{selectedDate ? `Horarios disponibles · ${formatSelected(selectedDate)}` : "Horarios disponibles"}</p>{!selectedDate ? <p className="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">Seleccioná primero un día para ver los horarios.</p> : isLoadingTimes ? <p className="rounded-md border border-border px-4 py-6 text-center text-sm text-muted-foreground">Cargando horarios...</p> : <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">{getScheduleForCategory(selectedCategory ?? "").map((time) => { const booked = bookedTimes.includes(time); const active = selectedTime === time; return <button key={time} type="button" disabled={booked} onClick={() => setSelectedTime(time)} className={`rounded-md border px-2 py-2 text-xs tabular-nums transition-colors ${active ? "border-primary bg-primary text-primary-foreground" : booked ? "cursor-not-allowed border-border text-muted-foreground/40 line-through" : "border-border text-foreground hover:border-primary hover:text-primary"}`}>{time}</button> })}</div>}</div>
+          <div><p className="mb-2 text-sm text-foreground">{selectedDate ? `Horarios disponibles · ${formatSelected(selectedDate)}` : "Horarios disponibles"}</p>{!selectedDate ? <p className="rounded-md border border-dashed border-border px-4 py-6 text-center text-sm text-muted-foreground">Seleccioná primero un día para ver los horarios.</p> : isLoadingTimes ? <p className="rounded-md border border-border px-4 py-6 text-center text-sm text-muted-foreground">Cargando horarios...</p> : <div className="grid grid-cols-4 gap-2 sm:grid-cols-6">{(availableSchedule.length ? availableSchedule : getScheduleForCategory(selectedCategory ?? "")).map((time) => { const booked = bookedTimes.includes(time); const active = selectedTime === time; return <button key={time} type="button" disabled={booked} onClick={() => setSelectedTime(time)} className={`rounded-md border px-2 py-2 text-xs tabular-nums transition-colors ${active ? "border-primary bg-primary text-primary-foreground" : booked ? "cursor-not-allowed border-border text-muted-foreground/40 line-through" : "border-border text-foreground hover:border-primary hover:text-primary"}`}>{time}</button> })}</div>}</div>
           <button type="submit" disabled={isPending || !selectedDate || !selectedTime || !selectedCategory || selectedTreatments.length === 0} className="w-full rounded-full bg-primary px-8 py-3.5 text-sm tracking-[0.15em] text-primary-foreground transition-opacity hover:opacity-90 disabled:opacity-60">{isPending ? "PROCESANDO..." : DEPOSIT_ENABLED ? "CONTINUAR A LA SEÑA" : "CONTINUAR"}</button>
         </>
       )}

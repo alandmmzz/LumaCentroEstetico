@@ -21,6 +21,13 @@ export const appointments = pgTable("appointments", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 })
 
+export const serviceSchedules = pgTable("service_schedules", {
+  id: serial("id").primaryKey(),
+  serviceCategory: text("service_category").notNull(),
+  startTime: text("start_time").notNull(),
+  endTime: text("end_time").notNull(),
+})
+
 export const serviceCategories = pgTable("service_categories", {
   id: serial("id").primaryKey(),
   name: text("name").notNull().unique(),

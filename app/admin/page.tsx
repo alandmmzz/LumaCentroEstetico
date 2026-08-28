@@ -1,9 +1,10 @@
-import { getAdminServiceCatalog, getAppointments, getStaff } from "@/app/actions/appointments"
+import { getAdminServiceCatalog, getAppointments, getServiceSchedules, getStaff } from "@/app/actions/appointments"
 import { AdminAppointments } from "@/components/admin-appointments"
 import { AdminServices } from "@/components/admin-services"
 import { AdminStaff } from "@/components/admin-staff"
 import { AdminTabs } from "@/components/admin-tabs"
 import { AdminCalendar } from "@/components/admin-calendar"
+import { AdminSchedules } from "@/components/admin-schedules"
 import Link from "next/link"
 import { isAdminAuthenticated } from "@/lib/admin-auth"
 import { AdminAccessForm } from "@/components/admin-access-form"
@@ -14,10 +15,11 @@ export const dynamic = "force-dynamic"
 export default async function AdminPage() {
   if (!(await isAdminAuthenticated())) return <AdminAccessForm />
 
-  const [appointments, serviceCatalog, staffList] = await Promise.all([
+  const [appointments, serviceCatalog, staffList, scheduleList] = await Promise.all([
     getAppointments(),
     getAdminServiceCatalog(),
     getStaff(),
+    getServiceSchedules(),
   ])
 
   return (
@@ -44,6 +46,7 @@ export default async function AdminPage() {
           turnos={<div className="space-y-10"><AdminCalendar appointments={appointments} /><AdminAppointments appointments={appointments} staff={staffList} /></div>}
           servicios={<AdminServices catalog={serviceCatalog} />}
           personal={<AdminStaff staff={staffList} adminEmails={getAdminEmails()} />}
+          horarios={<AdminSchedules schedules={scheduleList} />}
         />
       </div>
     </main>
