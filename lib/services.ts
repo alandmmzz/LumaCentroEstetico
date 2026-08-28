@@ -57,7 +57,7 @@ export const SERVICE_CATEGORIES = [
   },
   {
     name: "Promos",
-    description: "Combinaciones especiales · 4 horas",
+    description: "Combinaciones especiales para disfrutar más.",
     treatments: [
       { id: "promo-soft-gel-higiene", name: "Soft gel + higiene facial", price: 1590 },
       { id: "promo-kapping-estetica", name: "Kapping gel + estética de pie", price: 1190 },
