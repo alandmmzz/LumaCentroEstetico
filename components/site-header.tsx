@@ -40,7 +40,7 @@ export function SiteHeader() {
           <Link href="/#servicios" className="transition-colors hover:text-primary">
             Servicios
           </Link>
-          <Link href="/#agenda" className="transition-colors hover:text-primary">
+          <Link href="/reservar" className="transition-colors hover:text-primary">
             Agendar
           </Link>
         </nav>

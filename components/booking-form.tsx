@@ -125,8 +125,8 @@ export function BookingForm({ catalog }: { catalog?: BookingCatalog }) {
         {servicePrice > 0 && <p className="mt-3 text-sm text-muted-foreground">Total estimado: <span className="text-foreground">{formatUYU(servicePrice)}</span></p>}
       </fieldset>
       {selectedCategory && !isOnlineCategory(selectedCategory) ? (
-        <a href={whatsappUrl(`Hola, quisiera consultar horarios para ${selectedCategory}.`)} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-3 rounded-full bg-primary px-6 py-3.5 text-sm tracking-wide text-primary-foreground transition-opacity hover:opacity-90">
-          <MessageCircle className="h-5 w-5" aria-hidden="true" /> CONSULTAR POR HORARIOS A WHATSAPP · +598 95 206 278
+        <a href={whatsappUrl(`Hola, quisiera consultar horarios para ${selectedCategory}.`)} target="_blank" rel="noreferrer" className="flex items-center justify-center gap-3 rounded-full bg-whatsapp px-6 py-3.5 text-sm tracking-wide text-whatsapp-foreground transition-opacity hover:opacity-90">
+          <MessageCircle className="h-5 w-5" aria-hidden="true" /> CONSULTAR POR HORARIOS A WHATSAPP
         </a>
       ) : (
         <>
