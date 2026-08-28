@@ -42,9 +42,11 @@ export const serviceTreatments = pgTable("service_treatments", {
   categoryId: integer("category_id").notNull(),
   name: text("name").notNull(),
   price: integer("price"),
+  promoPrice: integer("promo_price"),
   note: text("note").notNull().default(""),
   sortOrder: integer("sort_order").notNull().default(0),
   active: boolean("active").notNull().default(true),
+  showOnSite: boolean("show_on_site").notNull().default(true),
 })
 
 export const staff = pgTable("staff", {

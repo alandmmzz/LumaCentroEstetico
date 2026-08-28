@@ -18,6 +18,7 @@ export default async function HomePage() {
       id: String(treatment.id),
       name: treatment.name,
       price: treatment.price,
+      promoPrice: treatment.promoPrice,
       note: treatment.note,
     })),
   }))

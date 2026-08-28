@@ -5,7 +5,7 @@ import { serviceCategories, serviceTreatments } from "@/lib/db/schema"
 export async function getServiceCatalog() {
   const categories = await db.select().from(serviceCategories).where(eq(serviceCategories.active, true)).orderBy(asc(serviceCategories.sortOrder))
   const treatments = await db.select().from(serviceTreatments).where(eq(serviceTreatments.active, true)).orderBy(asc(serviceTreatments.sortOrder))
-  return categories.map((category) => ({ ...category, treatments: treatments.filter((treatment) => treatment.categoryId === category.id) }))
+  return categories.map((category) => ({ ...category, treatments: treatments.filter((treatment) => treatment.categoryId === category.id && treatment.showOnSite) }))
 }
 
 export async function getAllServiceCatalog() {

@@ -43,7 +43,7 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
     return { ok: false, error: "Esta categoría se coordina por WhatsApp." }
   }
   const validIds = new Set(category?.treatments.map((treatment) => treatment.id) ?? [])
-  if (!category || !Array.isArray(selection.treatmentIds) || selection.treatmentIds.length === 0 || selection.treatmentIds.some((id) => !validIds.has(id))) {
+  if (!category || !Array.isArray(selection.treatmentIds) || selection.treatmentIds.length === 0 || selection.treatmentIds.some((id) => !validIds.has(id as never))) {
     return { ok: false, error: "Seleccioná al menos un tratamiento válido." }
   }
 
@@ -370,6 +370,18 @@ export async function getAdminServiceCatalog() {
 
 export async function updateTreatmentPrice(id: number, price: number | null) {
   await db.update(serviceTreatments).set({ price }).where(eq(serviceTreatments.id, id))
+  revalidatePath("/")
+  revalidatePath("/admin")
+  }
+
+export async function updateTreatmentVisibility(id: number, showOnSite: boolean) {
+  await db.update(serviceTreatments).set({ showOnSite }).where(eq(serviceTreatments.id, id))
+  revalidatePath("/")
+  revalidatePath("/admin")
+}
+
+export async function updateTreatmentPromoPrice(id: number, promoPrice: number | null) {
+  await db.update(serviceTreatments).set({ promoPrice }).where(eq(serviceTreatments.id, id))
   revalidatePath("/")
   revalidatePath("/admin")
 }
