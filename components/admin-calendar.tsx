@@ -2,7 +2,7 @@
 
 import type { Appointment } from "@/lib/db/schema"
 import { formatServiceLabel } from "@/lib/services"
-import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react"
+import { ChevronLeft, ChevronRight, CalendarDays, Columns3 } from "lucide-react"
 import { useMemo, useState } from "react"
 
 const MONTHS = [
@@ -32,6 +32,10 @@ function toKey(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
 }
 
+function getServiceCategory(value: string) {
+  try { return JSON.parse(value).category ?? value } catch { return value }
+}
+
 function formatLong(key: string) {
   const d = new Date(`${key}T00:00:00`)
   return d.toLocaleDateString("es-UY", {
@@ -51,6 +55,7 @@ export function AdminCalendar({
     year: today.getFullYear(),
     month: today.getMonth(),
   })
+  const [showGantt, setShowGantt] = useState(false)
   const [selected, setSelected] = useState<string | null>(
     toKey(today.getFullYear(), today.getMonth(), today.getDate()),
   )
@@ -181,6 +186,7 @@ export function AdminCalendar({
       <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border bg-card/60 p-6">
         <div className="mb-4 flex min-w-0 items-center gap-2 text-primary">
           <CalendarDays className="h-4 w-4" />
+          <button type="button" onClick={() => setShowGantt((value) => !value)} className="ml-auto inline-flex items-center gap-1 rounded-full border border-primary/40 px-2.5 py-1 text-[10px] uppercase tracking-wider text-primary lg:hidden" aria-label={showGantt ? "Mostrar listado" : "Mostrar vista Gantt"}><Columns3 className="h-3.5 w-3.5" />{showGantt ? "Lista" : "Gantt"}</button>
           <h3 className="text-xs uppercase tracking-[0.25em]">
             {selected ? formatLong(selected) : "Seleccioná un día"}
           </h3>
@@ -191,7 +197,9 @@ export function AdminCalendar({
             No hay turnos para este día.
           </p>
         ) : (
-          <ul className="flex flex-col gap-3">
+          <div>
+          <ul className={`${showGantt ? "hidden lg:flex" : "flex"} flex-col gap-3`}>
+
             {selectedList.map((a) => (
               <li
                 key={a.id}
@@ -217,6 +225,15 @@ export function AdminCalendar({
               </li>
             ))}
           </ul>
+          <div className={`${showGantt ? "block" : "hidden lg:block"} mt-4 overflow-x-auto rounded-lg border border-border bg-background/40 p-3`} aria-label="Vista Gantt del día">
+            <div className="mb-2 grid min-w-[620px] grid-cols-[5rem_repeat(14,minmax(2.5rem,1fr))] text-[10px] text-muted-foreground">
+              <span />{Array.from({ length: 14 }, (_, index) => <span key={index} className="border-l border-border pl-1">{String(index + 8).padStart(2, "0")}:00</span>)}
+            </div>
+            <div className="flex min-w-[620px] flex-col gap-2">
+              {selectedList.map((a) => { const start = Number(a.appointmentTime.split(":")[0]) + Number(a.appointmentTime.split(":")[1]) / 60; const duration = getServiceCategory(a.service) === "Promos" ? 4 : 1.5; return <div key={a.id} className="grid grid-cols-[5rem_repeat(14,minmax(2.5rem,1fr))] items-center"><span className="truncate pr-2 text-xs text-foreground">{a.name}</span><span className={`col-span-14 h-7 rounded-md px-2 py-1 text-[10px] text-primary-foreground ${statusDot[a.status] === "bg-destructive" ? "bg-destructive" : "bg-primary"}`} style={{ gridColumn: `${Math.max(2, Math.floor(start - 8) + 2)} / span ${Math.max(1, Math.ceil(duration))}` }}>{a.appointmentTime} · {formatServiceLabel(a.service)}</span></div> })}
+            </div>
+          </div>
+          </div>
         )}
       </div>
     </div>
