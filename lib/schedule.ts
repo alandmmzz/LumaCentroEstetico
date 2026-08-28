@@ -1,11 +1,12 @@
-export type OnlineCategory = "Nails" | "Pedicuría" | "Cosmetología"
+export type OnlineCategory = "Nails" | "Pedicuría" | "Cosmetología" | "Promos"
 
-export const ONLINE_CATEGORIES: OnlineCategory[] = ["Nails", "Pedicuría", "Cosmetología"]
+export const ONLINE_CATEGORIES: OnlineCategory[] = ["Nails", "Pedicuría", "Cosmetología", "Promos"]
 
 export const CATEGORY_SCHEDULES: Record<OnlineCategory, string[]> = {
   Nails: ["09:00", "13:00", "16:00", "19:00"],
   Pedicuría: ["09:00", "13:00", "16:00", "19:00"],
   Cosmetología: ["09:00", "10:30", "12:00", "13:30", "15:00", "16:30", "18:00"],
+  Promos: ["09:00", "11:30", "14:00", "16:30"],
 }
 
 export const WHATSAPP_NUMBER = "59895206278"
@@ -16,7 +17,7 @@ export function getScheduleForCategory(category: string): string[] {
 }
 
 export function getServiceDuration(category: string): number {
-  return category === "Cosmetología" ? 90 : 150
+  return category === "Promos" ? 240 : category === "Cosmetología" ? 90 : 150
 }
 
 function toMinutes(time: string) {
@@ -32,7 +33,7 @@ export function isTimeAvailable(category: string, time: string, booked: Array<{ 
   const start = toMinutes(time)
   const end = start + getServiceDuration(category)
   const sameCategoryOverlaps = booked.some((item) => item.category === category && intervalsOverlap(start, end, toMinutes(item.time), toMinutes(item.time) + getServiceDuration(item.category)))
-  if (sameCategoryOverlaps) return false
+  if (category !== "Promos" && sameCategoryOverlaps) return false
   const points = new Set([start, end])
   for (const item of booked) {
     const itemStart = toMinutes(item.time)
@@ -46,7 +47,7 @@ export function isTimeAvailable(category: string, time: string, booked: Array<{ 
   return !sorted.slice(0, -1).some((point, index) => {
     const next = sorted[index + 1]
     const concurrent = booked.filter((item) => intervalsOverlap(point, next, toMinutes(item.time), toMinutes(item.time) + getServiceDuration(item.category))).length
-    return concurrent >= 2
+    return category === "Promos" ? concurrent >= 2 && booked.filter((item) => item.category === "Promos" && intervalsOverlap(point, next, toMinutes(item.time), toMinutes(item.time) + getServiceDuration(item.category))).length >= 2 : concurrent >= 2
   })
 }
 

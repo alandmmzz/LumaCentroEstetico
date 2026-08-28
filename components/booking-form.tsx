@@ -9,7 +9,7 @@ import { useRouter } from "next/navigation"
 import { useEffect, useState, useTransition } from "react"
 
 const inputClass = "w-full rounded-md border border-input bg-card px-4 py-3 text-foreground outline-none transition-colors placeholder:text-muted-foreground focus:border-primary"
-const icons = { Nails: Hand, "Cosmetología": Sparkles, Masajes: HeartPulse, Pedicuría: Footprints, "Depilación": Flower2 }
+const icons = { Nails: Hand, "Cosmetología": Sparkles, Masajes: HeartPulse, Pedicuría: Footprints, "Depilación": Flower2, Promos: Sparkles }
 
 function formatSelected(key: string) {
   return new Date(`${key}T00:00:00`).toLocaleDateString("es-UY", { weekday: "long", day: "numeric", month: "long" })
@@ -110,7 +110,7 @@ export function BookingForm() {
               <div key={item.name}>
                 <button type="button" role="radio" aria-checked={active} onClick={() => chooseCategory(item.name)} className={`flex w-full items-center gap-3 rounded-lg border p-4 text-left transition-colors ${active ? "border-primary bg-primary/10" : "border-border bg-card hover:border-primary/50"}`}>
                   <Icon className="h-5 w-5 shrink-0 text-primary" aria-hidden="true" />
-                  <span className="flex-1"><span className="block font-serif text-lg text-foreground">{item.name}</span><span className="block text-xs text-muted-foreground">{item.description}</span></span>
+                  <span className="flex-1"><span className="flex flex-wrap items-center gap-2 font-serif text-lg text-foreground">{item.name}{item.name === "Promos" && <span className="rounded-full bg-primary px-2 py-0.5 font-sans text-[10px] uppercase tracking-wider text-primary-foreground">4 hs · combinadas</span>}</span><span className="block text-xs text-muted-foreground">{item.description}</span></span>
                   <span className={`flex h-5 w-5 items-center justify-center rounded-full border ${active ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{active && <Check className="h-3 w-3" aria-hidden="true" />}</span>
                 </button>
                 {active && <div className="mt-2 rounded-lg border border-primary/25 bg-background/70 p-3" role="group" aria-label={`Tratamientos de ${item.name}`}><div className="mb-2 flex items-center gap-2 text-xs uppercase tracking-wider text-primary"><ChevronDown className="h-3.5 w-3.5" /> Elegí uno o más tratamientos</div><div className="space-y-2">{item.treatments.map((treatment) => { const checked = selectedTreatments.includes(treatment.id); return <label key={treatment.id} className="flex cursor-pointer items-start gap-3 rounded-md px-2 py-2 hover:bg-primary/5"><input type="checkbox" checked={checked} onChange={() => toggleTreatment(treatment.id)} className="sr-only" /><span className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded border ${checked ? "border-primary bg-primary text-primary-foreground" : "border-border"}`}>{checked && <Check className="h-3 w-3" aria-hidden="true" />}</span><span className="flex-1 text-sm text-foreground">{treatment.name}{treatment.note && <span className="mt-0.5 block text-xs text-muted-foreground">{treatment.note}</span>}</span><span className="text-sm tabular-nums text-primary">{treatment.price === null ? "Consultar" : formatUYU(treatment.price)}</span></label> })}</div></div>}
