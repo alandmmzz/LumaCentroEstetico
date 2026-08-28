@@ -15,7 +15,9 @@ function formatSelected(key: string) {
   return new Date(`${key}T00:00:00`).toLocaleDateString("es-UY", { weekday: "long", day: "numeric", month: "long" })
 }
 
-export function BookingForm() {
+type BookingCatalog = Array<{ name: string; description: string; treatments: Array<{ id: number | string; name: string; price: number | null; promoPrice?: number | null; note?: string }> }>
+
+export function BookingForm({ catalog }: { catalog?: BookingCatalog }) {
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [isLoadingTimes, setIsLoadingTimes] = useState(false)
@@ -40,8 +42,9 @@ export function BookingForm() {
     Promise.all([getBookedTimes(selectedDate, selectedCategory), getAvailableSchedule(selectedCategory)]).then(([booked, schedule]) => { setBookedTimes(booked); setAvailableSchedule(schedule) }).finally(() => setIsLoadingTimes(false))
   }, [selectedDate, selectedCategory])
 
-  const category = SERVICE_CATEGORIES.find((item) => item.name === selectedCategory)
-  const servicePrice = category?.treatments.filter((item) => selectedTreatments.includes(item.id)).reduce((sum, item) => sum + (item.price ?? 0), 0) ?? 0
+  const bookingCategories = catalog?.map((item) => ({ ...item, treatments: item.treatments.map((treatment) => ({ ...treatment, id: String(treatment.id) })) })) ?? SERVICE_CATEGORIES
+  const category = bookingCategories.find((item) => item.name === selectedCategory)
+  const servicePrice = category?.treatments.filter((item) => selectedTreatments.includes(String(item.id))).reduce((sum, item) => sum + (("promoPrice" in item ? item.promoPrice : null) ?? item.price ?? 0), 0) ?? 0
 
   function chooseCategory(name: string) {
     setSelectedCategory(name)
@@ -103,7 +106,7 @@ export function BookingForm() {
       <fieldset>
         <legend className="mb-3 text-sm text-foreground">Elegí una categoría</legend>
         <div className="grid gap-3">
-          {SERVICE_CATEGORIES.map((item) => {
+          {bookingCategories.map((item) => {
             const Icon = icons[item.name as keyof typeof icons]
             const active = selectedCategory === item.name
             return (
