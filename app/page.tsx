@@ -28,7 +28,7 @@ export default async function HomePage() {
       <Hero />
       <About />
       <Services catalog={catalog} />
-      <BookingSection catalog={dbCatalog} />
+      <BookingSection />
       <SiteFooter />
       <WhatsAppFloat />
     </main>

@@ -2,9 +2,12 @@
 
 import Link from "next/link"
 import { useEffect, useState } from "react"
+import { usePathname } from "next/navigation"
 
 export function SiteHeader() {
   const [scrolled, setScrolled] = useState(false)
+  const pathname = usePathname()
+  const isBookingPage = pathname === "/reservar"
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24)
@@ -42,10 +45,10 @@ export function SiteHeader() {
           </Link>
         </nav>
         <Link
-          href="/#agenda"
+          href={isBookingPage ? "/" : "/reservar"}
           className="rounded-full bg-primary px-5 py-2 text-xs tracking-[0.15em] text-primary-foreground transition-opacity hover:opacity-90"
         >
-          RESERVAR TURNO
+          {isBookingPage ? "VOLVER AL INICIO" : "RESERVAR TURNO"}
         </Link>
       </div>
     </header>
