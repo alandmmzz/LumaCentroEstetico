@@ -25,9 +25,9 @@ export function SiteHeader() {
           : "bg-transparent"
       }`}
     >
-      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
+      <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
         <Link href="/" className="block shrink-0" aria-label="LUMA Centro Estético, inicio">
-          <Image src="/luma-logo.png" alt="LUMA Centro Estético" width={150} height={150} className="h-auto w-28 sm:w-36" priority />
+          <Image src="/luma-logo.png" alt="LUMA Centro Estético" width={150} height={150} className="h-auto w-40 sm:w-48" priority />
         </Link>
         <nav className="hidden items-center gap-8 text-sm tracking-wide text-foreground md:flex">
           <Link href="/#nosotras" className="transition-colors hover:text-primary">

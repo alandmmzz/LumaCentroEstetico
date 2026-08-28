@@ -30,7 +30,7 @@ export function SiteFooter() {
     <footer className="border-t border-border bg-secondary/40 py-14">
       <div className="mx-auto max-w-6xl px-6 text-center">
         <div className="flex flex-col items-center leading-none">
-          <Image src="/luma-logo.png" alt="LUMA Centro Estético" width={180} height={180} className="h-auto w-36" />
+          <Image src="/luma-logo.png" alt="LUMA Centro Estético" width={180} height={180} className="h-auto w-48" />
         </div>
         <p className="mx-auto mt-6 max-w-md text-sm italic leading-relaxed text-muted-foreground">
           Iluminamos tu belleza, potenciamos tu esencia.
