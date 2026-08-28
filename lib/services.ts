@@ -55,6 +55,15 @@ export const SERVICE_CATEGORIES = [
     description: "Sistema español · Consultar promociones",
     treatments: [{ id: "depilacion-consulta", name: "Depilación · consultar precio", price: null }],
   },
+  {
+    name: "Promos",
+    description: "Combinaciones especiales · 4 horas",
+    treatments: [
+      { id: "promo-soft-gel-higiene", name: "Soft gel + higiene facial", price: 1590 },
+      { id: "promo-kapping-estetica", name: "Kapping gel + estética de pie", price: 1190 },
+      { id: "promo-semi-estetica", name: "Esmaltado semi + estética de pie", price: 890 },
+    ],
+  },
 ] as const satisfies readonly ServiceCategory[]
 
 export const SERVICES = SERVICE_CATEGORIES.map((category) => ({

@@ -113,7 +113,7 @@ export async function getAvailableSchedule(category: string) {
 export async function getServiceSchedules() {
   const rows = await db.select().from(serviceSchedules).orderBy(asc(serviceSchedules.serviceCategory), asc(serviceSchedules.startTime))
   if (rows.length) return rows
-  return Object.entries({ Nails: ["09:00", "13:00", "16:00", "19:00"], "Pedicuría": ["09:00", "13:00", "16:00", "19:00"], "Cosmetología": ["09:00", "10:30", "12:00", "13:30", "15:00", "16:30", "18:00"] }).flatMap(([serviceCategory, times]) => times.map((startTime) => ({ id: 0, serviceCategory, startTime, endTime: startTime })))
+  return Object.entries({ Nails: ["09:00", "13:00", "16:00", "19:00"], "Pedicuría": ["09:00", "13:00", "16:00", "19:00"], "Cosmetología": ["09:00", "10:30", "12:00", "13:30", "15:00", "16:30", "18:00"], Promos: ["09:00", "11:30", "14:00", "16:30"] }).flatMap(([serviceCategory, times]) => times.map((startTime) => ({ id: 0, serviceCategory, startTime, endTime: startTime })))
 }
 
 export async function updateServiceSchedules(serviceCategory: string, times: string[]) {
