@@ -4,7 +4,7 @@ import { db } from "@/lib/db"
 import { appointments, serviceCategories, serviceTreatments, staff } from "@/lib/db/schema"
 import { getAllServiceCatalog } from "@/lib/db/services"
 import { getServicePrice, SERVICE_CATEGORIES } from "@/lib/services"
-import { getScheduleForCategory, isOnlineCategory } from "@/lib/schedule"
+import { getScheduleForCategory, isOnlineCategory, isTimeAvailable } from "@/lib/schedule"
 import { createMercadoPagoPreference, getMercadoPagoPayment, isMercadoPagoEnabled } from "@/lib/mercadopago"
 import { and, asc, desc, eq, ne } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
@@ -60,7 +60,7 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
   }
 
   const existingAtTime = await db
-    .select({ id: appointments.id, service: appointments.service })
+    .select({ id: appointments.id, service: appointments.service, appointmentTime: appointments.appointmentTime })
     .from(appointments)
     .where(
       and(
@@ -69,12 +69,9 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
         ne(appointments.status, "cancelado"),
       ),
     )
-  const sameCategory = existingAtTime.some((item) => getAppointmentCategory(item.service) === selection.category)
-  if (sameCategory) {
-    return { ok: false, error: `Ya existe un turno de ${selection.category} para ese día y horario.` }
-  }
-  if (existingAtTime.length >= 2) {
-    return { ok: false, error: "Ese horario ya tiene dos servicios asignados. Elegí otro." }
+  const booked = existingAtTime.map((item) => ({ category: getAppointmentCategory(item.service), time: item.appointmentTime }))
+  if (!isTimeAvailable(selection.category, appointmentTime, booked)) {
+    return { ok: false, error: "Ese horario se superpone con otro turno o supera la capacidad disponible." }
   }
 
   const price = getServicePrice(service)
@@ -235,16 +232,9 @@ export async function getBookedTimes(appointmentDate: string, category?: string)
         ne(appointments.status, "cancelado"),
       ),
     )
-  const unavailable = rows.reduce<Record<string, { total: number; categories: Set<string> }>>((result, row) => {
-    const current = result[row.appointmentTime] ?? { total: 0, categories: new Set<string>() }
-    current.total += 1
-    current.categories.add(getAppointmentCategory(row.service))
-    result[row.appointmentTime] = current
-    return result
-  }, {})
-  return Object.entries(unavailable)
-    .filter(([, value]) => value.total >= 2 || (category ? value.categories.has(category) : false))
-    .map(([time]) => time)
+  const booked = rows.map((row) => ({ category: getAppointmentCategory(row.service), time: row.appointmentTime }))
+  if (!category) return []
+  return getScheduleForCategory(category).filter((time) => !isTimeAvailable(category, time, booked))
 }
 
 export async function updateStatus(id: number, status: string) {
