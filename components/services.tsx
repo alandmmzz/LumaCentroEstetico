@@ -1,13 +1,15 @@
 import { SERVICE_CATEGORIES, formatUYU } from "@/lib/services"
 import Image from "next/image"
 
-const services = SERVICE_CATEGORIES.map((category) => ({
+type PublicService = { name: string; description: string; treatments: readonly { id: string; name: string; price: number | null; promoPrice?: number | null; note?: string }[] }
+
+const services: PublicService[] = SERVICE_CATEGORIES.map((category) => ({
   name: category.name,
   description: category.description,
   treatments: category.treatments,
 }))
 
-export function Services({ catalog = services }: { catalog?: typeof services } = {}) {
+export function Services({ catalog = services }: { catalog?: PublicService[] } = {}) {
   return (
     <section id="servicios" className="bg-secondary/50 py-24">
       <div className="mx-auto max-w-6xl px-6">
@@ -53,9 +55,11 @@ export function Services({ catalog = services }: { catalog?: typeof services } =
                         className="inline-flex items-center gap-1.5 rounded-full border border-primary/30 bg-background/70 px-3 py-1.5 text-xs text-foreground"
                       >
                         {treatment.name}
-                        {treatment.price !== null && (
+                        {treatment.price !== null && (treatment.promoPrice ?? null) !== null ? (
+                          <span className="flex items-center gap-1.5"><span className="text-muted-foreground line-through">{formatUYU(treatment.price)}</span><span className="font-medium text-primary">{formatUYU(treatment.promoPrice!)}</span></span>
+                        ) : treatment.price !== null ? (
                           <span className="text-primary">{formatUYU(treatment.price)}</span>
-                        )}
+                        ) : null}
                       </span>
                     ))}
                   </div>

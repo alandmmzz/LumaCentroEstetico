@@ -2,6 +2,7 @@ export type Treatment = {
   id: string
   name: string
   price: number | null
+  promoPrice?: number | null
   note?: string
 }
 
