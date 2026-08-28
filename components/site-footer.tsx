@@ -1,3 +1,4 @@
+import Image from "next/image"
 import { MessageCircle } from "lucide-react"
 import { whatsappUrl } from "@/lib/schedule"
 
@@ -29,12 +30,7 @@ export function SiteFooter() {
     <footer className="border-t border-border bg-secondary/40 py-14">
       <div className="mx-auto max-w-6xl px-6 text-center">
         <div className="flex flex-col items-center leading-none">
-          <span className="font-serif text-2xl font-semibold tracking-[0.25em] text-primary">
-            LUMA
-          </span>
-          <span className="mt-1 text-[0.6rem] tracking-[0.4em] text-muted-foreground">
-            CENTRO ESTÉTICO
-          </span>
+          <Image src="/luma-logo.png" alt="LUMA Centro Estético" width={180} height={180} className="h-auto w-36" />
         </div>
         <p className="mx-auto mt-6 max-w-md text-sm italic leading-relaxed text-muted-foreground">
           Iluminamos tu belleza, potenciamos tu esencia.
