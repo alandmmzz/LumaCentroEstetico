@@ -46,7 +46,7 @@ export default async function AdminPage() {
           turnos={<div className="space-y-10"><AdminCalendar appointments={appointments} /><AdminAppointments appointments={appointments} staff={staffList} catalog={serviceCatalog} /></div>}
           servicios={<AdminServices catalog={serviceCatalog} />}
           personal={<AdminStaff staff={staffList} adminEmails={getAdminEmails()} />}
-          horarios={<AdminSchedules schedules={scheduleList} catalog={serviceCatalog} />}
+          horarios={<AdminSchedules schedules={scheduleList} />}
         />
       </div>
     </main>
