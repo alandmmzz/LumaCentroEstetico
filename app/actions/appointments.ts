@@ -93,8 +93,12 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
     })
     .returning({ id: appointments.id })
 
+  const notificationRecipients = (process.env.BOOKING_NOTIFICATION_EMAILS ?? process.env.ADMIN_EMAIL ?? "alandmarp11@gmail.com")
+    .split(",")
+    .map((recipient) => recipient.trim())
+    .filter(Boolean)
   await sendAppointmentRequestEmail({
-    to: process.env.ADMIN_EMAIL ?? "alandmarp11@gmail.com",
+    to: notificationRecipients,
     clientName: name,
     email,
     phone,
@@ -161,7 +165,7 @@ export async function assignStaff(id: number, staffId: number | null) {
   return { ok: true }
 }
 
-type AppointmentEmail = { to: string; clientName: string; email?: string; phone: string; service: string; date: string; time: string }
+type AppointmentEmail = { to: string[]; clientName: string; email?: string; phone: string; service: string; date: string; time: string }
 
 function formatEmailDate(dateKey: string) {
   try {
@@ -316,8 +320,8 @@ async function sendAppointmentRequestEmail(data: AppointmentEmail) {
     </table>
     <p style="margin:20px 0 0 0;color:#8a7862;font-size:13px;">Asignale un profesional desde el panel de administración para confirmar el turno.</p>
   `
-  await sendResendEmail(
-    data.to,
+  await Promise.all(data.to.map((recipient) => sendResendEmail(
+    recipient,
     "Nueva solicitud de turno · LUMA",
     emailLayout({
       preheader: `Nueva solicitud de ${data.clientName} para ${serviceLabel}`,
@@ -325,7 +329,7 @@ async function sendAppointmentRequestEmail(data: AppointmentEmail) {
       heading: "Nueva solicitud de turno",
       bodyHtml,
     }),
-  )
+  )))
 }
 
 async function sendAppointmentEmail(to: string, clientName: string, staffName: string, date: string, time: string) {
