@@ -2,7 +2,7 @@ import { BookingForm } from "./booking-form"
 
 export function BookingSection() {
   return (
-    <section id="agenda" className="bg-background py-24">
+    <section id="agenda" className="bg-background py-12 md:py-24">
       <div className="mx-auto grid max-w-6xl gap-14 px-6 lg:grid-cols-2 lg:items-start">
         <div className="lg:sticky lg:top-24 lg:self-start">
           <p className="mb-3 text-xs uppercase tracking-[0.4em] text-primary">
@@ -27,7 +27,7 @@ export function BookingSection() {
           </div>
         </div>
 
-        <div className="rounded-xl border border-border bg-card/60 p-8 shadow-sm">
+        <div className="rounded-xl border border-border bg-card/60 p-4 shadow-sm sm:p-8">
           <BookingForm />
         </div>
       </div>
