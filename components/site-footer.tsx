@@ -1,27 +1,8 @@
-<<<<<<< HEAD
 import { MessageCircle } from "lucide-react"
-=======
-<<<<<<< HEAD
-import { MessageCircle } from "lucide-react"
-=======
-<<<<<<< HEAD
-import { MessageCircle } from "lucide-react"
-=======
-import { Instagram, MessageCircle } from "lucide-react"
->>>>>>> 89b7e4dc4f2b069d3cc517152c0173b41e1a3719
->>>>>>> eef9cebc1981c2948441b0b77c0d389d00b294e9
->>>>>>> 13135df20a977a076330f16feb66ff7c4b583b10
 import { whatsappUrl } from "@/lib/schedule"
 
 const INSTAGRAM_URL = "https://instagram.com/luma_centroestetico"
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
->>>>>>> eef9cebc1981c2948441b0b77c0d389d00b294e9
->>>>>>> 13135df20a977a076330f16feb66ff7c4b583b10
 // lucide-react quitó los íconos de marcas (Instagram, etc.) en versiones recientes,
 // así que usamos el mismo trazado que usan sus íconos como SVG inline.
 function InstagramIcon({ className }: { className?: string }) {
@@ -43,14 +24,6 @@ function InstagramIcon({ className }: { className?: string }) {
   )
 }
 
-<<<<<<< HEAD
-=======
-<<<<<<< HEAD
-=======
-=======
->>>>>>> 89b7e4dc4f2b069d3cc517152c0173b41e1a3719
->>>>>>> eef9cebc1981c2948441b0b77c0d389d00b294e9
->>>>>>> 13135df20a977a076330f16feb66ff7c4b583b10
 export function SiteFooter() {
   return (
     <footer className="border-t border-border bg-secondary/40 py-14">
@@ -77,19 +50,7 @@ export function SiteFooter() {
             aria-label="Seguinos en Instagram"
             className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary transition-colors hover:bg-primary hover:text-primary-foreground"
           >
-<<<<<<< HEAD
             <InstagramIcon className="h-4 w-4" />
-=======
-<<<<<<< HEAD
-            <InstagramIcon className="h-4 w-4" />
-=======
-<<<<<<< HEAD
-            <InstagramIcon className="h-4 w-4" />
-=======
-            <Instagram className="h-4 w-4" strokeWidth={2} aria-hidden="true" />
->>>>>>> 89b7e4dc4f2b069d3cc517152c0173b41e1a3719
->>>>>>> eef9cebc1981c2948441b0b77c0d389d00b294e9
->>>>>>> 13135df20a977a076330f16feb66ff7c4b583b10
           </a>
           <a
             href={whatsappUrl()}
