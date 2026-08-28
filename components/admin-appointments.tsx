@@ -9,6 +9,7 @@ import {
 import { AdminNewAppointment } from "@/components/admin-new-appointment"
 import type { Appointment, Staff } from "@/lib/db/schema"
 import { SERVICE_CATEGORIES, formatServiceLabel, formatUYU } from "@/lib/services"
+import { Filter, Download, Plus, X } from "lucide-react"
 import { useState, useTransition } from "react"
 
 const STATUS_OPTIONS = ["pendiente", "confirmado", "pago", "cancelado"]
@@ -60,6 +61,7 @@ export function AdminAppointments({
     () => Object.fromEntries(appointments.map((appointment) => [appointment.id, appointment.paymentReceived || appointment.price])),
   )
   const [isPending, startTransition] = useTransition()
+  const [filtersOpen, setFiltersOpen] = useState(false)
 
   const filtered = appointments.filter((a) =>
     (filter === "todos" || a.status === filter) &&
@@ -86,15 +88,19 @@ export function AdminAppointments({
     <div>
       <div className="mb-6 flex items-center justify-between gap-4">
         <h2 className="font-serif text-2xl text-foreground">Turnos agendados</h2>
-        <AdminNewAppointment staff={staff} />
+        <div className="flex items-center gap-2">
+          <button type="button" onClick={() => setFiltersOpen((open) => !open)} className={`inline-flex items-center justify-center rounded-full border p-2.5 ${filtersOpen ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/50"}`} aria-expanded={filtersOpen} aria-controls="appointment-filters" aria-label={filtersOpen ? "Ocultar filtros" : "Mostrar filtros"}>{filtersOpen ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}</button>
+          <button type="button" onClick={downloadSummary} className="inline-flex items-center justify-center rounded-full border border-primary/40 p-2.5 text-primary hover:bg-primary/10" aria-label="Descargar CSV"><Download className="h-4 w-4" /></button>
+          <AdminNewAppointment staff={staff} trigger={<span className="inline-flex items-center justify-center rounded-full bg-primary p-2.5 text-primary-foreground" aria-label="Añadir nuevo turno"><Plus className="h-4 w-4" /></span>} />
+        </div>
       </div>
-      <div className="mb-6 flex flex-wrap items-center gap-3">
-        <label className="text-xs uppercase tracking-wide text-muted-foreground" htmlFor="month-filter">Mes</label>
-        <input id="month-filter" type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground" />
-        <button type="button" onClick={downloadSummary} className="rounded-full border border-primary/40 px-4 py-2 text-xs text-primary hover:bg-primary/10">DESCARGAR CSV</button>
-        <span className="text-sm text-muted-foreground">Ingresos: <strong className="text-foreground">{formatUYU(monthlyIncome)}</strong></span>
-      </div>
-      <div className="mb-6 flex flex-wrap items-center gap-3">
+      <div className="mb-6 text-sm text-muted-foreground">Ingresos: <strong className="text-foreground">{formatUYU(monthlyIncome)}</strong></div>
+      <div id="appointment-filters" className={`${filtersOpen ? "block" : "hidden"} mb-6 rounded-xl border border-border bg-card/40 p-4`}>
+        <div className="flex flex-wrap items-center gap-3">
+        <div className="mb-3 flex items-center gap-3">
+          <label className="text-xs uppercase tracking-wide text-muted-foreground" htmlFor="month-filter">Mes</label>
+          <input id="month-filter" type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="min-w-0 rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground" />
+        </div>
         <label className="sr-only" htmlFor="status-filter">Filtrar por estado</label>
         <select id="status-filter" value={filter} onChange={(event) => setFilter(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
           <option value="todos">Todos los estados</option>
@@ -103,7 +109,7 @@ export function AdminAppointments({
         <label className="sr-only" htmlFor="service-filter">Filtrar por servicio</label>
         <select id="service-filter" value={serviceFilter} onChange={(event) => setServiceFilter(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
           <option value="todos">Todos los servicios</option>
-          {SERVICE_CATEGORIES.slice(0, 5).map((category) => <option key={category.name} value={category.name}>{category.name}</option>)}
+          {SERVICE_CATEGORIES.map((category) => <option key={category.name} value={category.name}>{category.name}</option>)}
         </select>
         <label className="sr-only" htmlFor="staff-filter">Filtrar por profesional</label>
         <select id="staff-filter" value={staffFilter} onChange={(event) => setStaffFilter(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
@@ -111,6 +117,7 @@ export function AdminAppointments({
           <option value="">Sin asignar</option>
           {staff.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
         </select>
+        </div>
       </div>
 
       {filtered.length === 0 ? (
@@ -156,7 +163,7 @@ export function AdminAppointments({
                     <select
                       value={a.staffId ?? ""}
                       onChange={(event) =>
-                        startTransition(() => assignStaff(a.id, event.target.value ? Number(event.target.value) : null))
+                        startTransition(async () => { await assignStaff(a.id, event.target.value ? Number(event.target.value) : null) })
                       }
                       disabled={isPending}
                       className="rounded-md border border-input bg-card px-2 py-1 text-xs text-foreground"
@@ -177,7 +184,7 @@ export function AdminAppointments({
                       }}
                       onBlur={() => {
                         const amount = paymentAmounts[a.id] ?? a.price
-                        startTransition(() => updatePaymentManual(a.id, amount, a.status === "pago" ? "pagado" : "pendiente"))
+                        startTransition(async () => { await updatePaymentManual(a.id, amount, a.status === "pago" ? "pagado" : "pendiente") })
                       }}
                       className="w-28 rounded-md border border-input bg-card px-2 py-1 text-xs tabular-nums text-foreground"
                       aria-label={`Monto a cobrar de ${a.name}`}
@@ -190,9 +197,9 @@ export function AdminAppointments({
                         value={a.status}
                         disabled={isPending}
                         onChange={(e) =>
-                          startTransition(() =>
-                            updateStatus(a.id, e.target.value),
-                          )
+                          startTransition(async () => {
+                            await updateStatus(a.id, e.target.value)
+                          })
                         }
                         className="rounded-md border border-input bg-card px-2 py-1 text-xs capitalize text-foreground outline-none focus:border-primary"
                       >

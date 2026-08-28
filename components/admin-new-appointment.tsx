@@ -5,7 +5,7 @@ import { SERVICE_CATEGORIES, formatUYU } from "@/lib/services"
 import type { OnlineCategory } from "@/lib/schedule"
 import { useState, useTransition } from "react"
 
-export function AdminNewAppointment({ staff }: { staff: { id: number; name: string }[] }) {
+export function AdminNewAppointment({ staff, trigger }: { staff: { id: number; name: string }[]; trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false)
   const [category, setCategory] = useState<OnlineCategory>(SERVICE_CATEGORIES[0].name as OnlineCategory)
   const [treatments, setTreatments] = useState<string[]>([SERVICE_CATEGORIES[0].treatments[0].id])
@@ -32,7 +32,7 @@ export function AdminNewAppointment({ staff }: { staff: { id: number; name: stri
   }
 
   return <>
-    <button type="button" onClick={() => setOpen(true)} className="rounded-full bg-primary px-5 py-2 text-xs tracking-wide text-primary-foreground hover:opacity-90">+ NUEVO TURNO</button>
+    <button type="button" onClick={() => setOpen(true)} className={trigger ? "rounded-full" : "rounded-full bg-primary px-5 py-2 text-xs tracking-wide text-primary-foreground hover:opacity-90"} aria-label="Añadir nuevo turno">{trigger ?? "+ NUEVO TURNO"}</button>
     {open && <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/40 p-4" role="dialog" aria-modal="true" aria-labelledby="new-appointment-title">
       <form action={submit} className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl border border-border bg-background p-6 shadow-xl">
         <div className="mb-6 flex items-start justify-between gap-4"><div><p className="text-xs uppercase tracking-[0.25em] text-primary">Carga manual</p><h2 id="new-appointment-title" className="mt-2 font-serif text-2xl text-foreground">Nuevo turno</h2></div><button type="button" onClick={() => setOpen(false)} className="text-sm text-muted-foreground">Cerrar</button></div>
