@@ -1,6 +1,7 @@
 import { BookingForm } from "./booking-form"
+import type { ServiceCatalog } from "@/lib/db/services"
 
-export function BookingSection() {
+export function BookingSection({ catalog }: { catalog?: ServiceCatalog }) {
   return (
     <section id="agenda" className="bg-background py-12 md:py-24">
       <div className="mx-auto grid max-w-6xl gap-14 px-6 lg:grid-cols-2 lg:items-start">
@@ -28,7 +29,7 @@ export function BookingSection() {
         </div>
 
         <div className="rounded-xl border border-border bg-card/60 p-4 shadow-sm sm:p-8">
-          <BookingForm />
+          <BookingForm catalog={catalog} />
         </div>
       </div>
     </section>
