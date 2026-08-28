@@ -110,23 +110,23 @@ export function AdminAppointments({
       </div>
       <div className="mb-6 text-sm text-muted-foreground">Ingresos: <strong className="text-foreground">{formatUYU(monthlyIncome)}</strong></div>
       <div id="appointment-filters" className={`${filtersOpen ? "block" : "hidden"} mb-6 rounded-xl border border-border bg-card/40 p-4`}>
-        <div className="flex flex-wrap items-center gap-3">
-        <div className="mb-3 flex items-center gap-3">
-          <label className="text-xs uppercase tracking-wide text-muted-foreground" htmlFor="month-filter">Mes</label>
-          <input id="month-filter" type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="min-w-0 rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground" />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="flex min-w-0 items-center gap-3">
+          <label className="shrink-0 text-xs uppercase tracking-wide text-muted-foreground" htmlFor="month-filter">Mes</label>
+          <input id="month-filter" type="month" value={month} onChange={(event) => setMonth(event.target.value)} className="min-w-0 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground" />
         </div>
         <label className="sr-only" htmlFor="status-filter">Filtrar por estado</label>
-        <select id="status-filter" value={filter} onChange={(event) => setFilter(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
+        <select id="status-filter" value={filter} onChange={(event) => setFilter(event.target.value)} className="min-w-0 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
           <option value="todos">Todos los estados</option>
           {STATUS_OPTIONS.map((status) => <option key={status} value={status}>{statusLabels[status]}</option>)}
         </select>
         <label className="sr-only" htmlFor="service-filter">Filtrar por servicio</label>
-        <select id="service-filter" value={serviceFilter} onChange={(event) => setServiceFilter(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
+        <select id="service-filter" value={serviceFilter} onChange={(event) => setServiceFilter(event.target.value)} className="min-w-0 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
           <option value="todos">Todos los servicios</option>
           {SERVICE_CATEGORIES.map((category) => <option key={category.name} value={category.name}>{category.name}</option>)}
         </select>
         <label className="sr-only" htmlFor="staff-filter">Filtrar por profesional</label>
-        <select id="staff-filter" value={staffFilter} onChange={(event) => setStaffFilter(event.target.value)} className="rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
+        <select id="staff-filter" value={staffFilter} onChange={(event) => setStaffFilter(event.target.value)} className="min-w-0 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
           <option value="todos">Todo el personal</option>
           <option value="">Sin asignar</option>
           {staff.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
