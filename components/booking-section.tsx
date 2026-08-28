@@ -1,11 +1,11 @@
-import { BookingForm } from "./booking-form"
-import type { ServiceCatalog } from "@/lib/db/services"
+import Link from "next/link"
+import { ArrowRight } from "lucide-react"
 
-export function BookingSection({ catalog }: { catalog?: ServiceCatalog }) {
+export function BookingSection() {
   return (
-    <section id="agenda" className="bg-background py-12 md:py-24">
-      <div className="mx-auto grid max-w-6xl gap-14 px-6 lg:grid-cols-2 lg:items-start">
-        <div className="lg:sticky lg:top-24 lg:self-start">
+    <section id="agenda" className="bg-background py-16 md:py-24">
+      <div className="mx-auto flex max-w-4xl flex-col items-center px-6 text-center">
+        <div>
           <p className="mb-3 text-xs uppercase tracking-[0.4em] text-primary">
             Reservá tu momento
           </p>
@@ -27,10 +27,9 @@ export function BookingSection({ catalog }: { catalog?: ServiceCatalog }) {
             </p>
           </div>
         </div>
-
-        <div className="rounded-xl border border-border bg-card/60 p-4 shadow-sm sm:p-8">
-          <BookingForm catalog={catalog} />
-        </div>
+        <Link href="/reservar" className="mt-8 inline-flex items-center gap-3 rounded-full bg-primary px-7 py-3 text-sm tracking-[0.12em] text-primary-foreground transition-transform hover:scale-[1.02]">
+          RESERVÁ TU MOMENTO <ArrowRight className="h-4 w-4" />
+        </Link>
       </div>
     </section>
   )
