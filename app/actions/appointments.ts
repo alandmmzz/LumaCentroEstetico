@@ -401,6 +401,24 @@ export async function createTreatment(categoryId: number, name: string, price: n
   return { ok: true }
 }
 
+export async function updateTreatmentDescription(id: number, note: string) {
+  await db.update(serviceTreatments).set({ note: note.trim() }).where(eq(serviceTreatments.id, id))
+  revalidatePath("/")
+  revalidatePath("/admin")
+  return { ok: true }
+}
+
+export async function deleteTreatment(id: number) {
+  const [treatment] = await db.select({ id: serviceTreatments.id }).from(serviceTreatments).where(eq(serviceTreatments.id, id))
+  if (!treatment) return { ok: false, error: "Tratamiento no encontrado." }
+  const references = await db.select({ id: appointments.id }).from(appointments).where(sql`service LIKE ${`%${id}%`}`).limit(1)
+  if (references.length) return { ok: false, error: "No se puede eliminar: tiene turnos asociados." }
+  await db.delete(serviceTreatments).where(eq(serviceTreatments.id, id))
+  revalidatePath("/")
+  revalidatePath("/admin")
+  return { ok: true }
+}
+
 export async function deleteServiceCategory(id: number) {
   const [category] = await db.select({ name: serviceCategories.name }).from(serviceCategories).where(eq(serviceCategories.id, id))
   if (!category) return { ok: false, error: "Servicio no encontrado." }
