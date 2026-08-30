@@ -26,7 +26,7 @@ export function Hero() {
         </p>
         <div className="mt-10 flex flex-col items-center justify-center gap-4 sm:flex-row">
           <a
-            href="#agenda"
+            href="/reservar"
             className="rounded-full bg-primary px-8 py-3 text-sm tracking-[0.15em] text-primary-foreground transition-opacity hover:opacity-90"
           >
             AGENDAR TURNO
