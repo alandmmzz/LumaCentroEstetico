@@ -13,7 +13,7 @@ export function AdminServices({ catalog }: { catalog: Catalog }) {
   const [prices, setPrices] = useState<Record<number, string>>(() => Object.fromEntries(catalog.flatMap((c) => c.treatments.map((t) => [t.id, t.price == null ? "" : String(t.price)]))))
   const [promos, setPromos] = useState<Record<number, string>>(() => Object.fromEntries(catalog.flatMap((c) => c.treatments.map((t) => [t.id, t.promoPrice == null ? "" : String(t.promoPrice)]))))
   const [visible, setVisible] = useState<Record<number, boolean>>(() => Object.fromEntries(catalog.flatMap((c) => c.treatments.map((t) => [t.id, t.showOnSite]))))
-  const [notes, setNotes] = useState<Record<number, string>>(() => Object.fromEntries(catalog.flatMap((c) => c.treatments.map((t) => [t.id, t.note || `Tratamiento profesional de ${t.name.toLowerCase()} para realzar tu bienestar y belleza.`]))))
+  const [notes, setNotes] = useState<Record<number, string>>(() => Object.fromEntries(catalog.flatMap((c) => c.treatments.map((t) => [t.id, t.note || ""]))))
   const [newNames, setNewNames] = useState<Record<number, string>>({})
   const [newPrices, setNewPrices] = useState<Record<number, string>>({})
 
