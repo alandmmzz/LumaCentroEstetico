@@ -6,7 +6,7 @@ import { catalogPrice, catalogServiceLabel, getAllServiceCatalog } from "@/lib/d
 
 import { getScheduleForCategory, isOnlineCategory, isTimeAvailable, whatsappUrl } from "@/lib/schedule"
 import { createMercadoPagoPreference, getMercadoPagoPayment, isMercadoPagoEnabled } from "@/lib/mercadopago"
-import { and, asc, desc, eq, ne } from "drizzle-orm"
+import { and, asc, desc, eq, ne, sql } from "drizzle-orm"
 import { revalidatePath } from "next/cache"
 
 export type BookingResult = { ok: boolean; error?: string; id?: number }
@@ -396,6 +396,18 @@ export async function createTreatment(categoryId: number, name: string, price: n
   const cleanName = name.trim()
   if (!cleanName) return { ok: false, error: "Ingresá un nombre." }
   await db.insert(serviceTreatments).values({ categoryId, name: cleanName, price, sortOrder: 99 })
+  revalidatePath("/")
+  revalidatePath("/admin")
+  return { ok: true }
+}
+
+export async function deleteServiceCategory(id: number) {
+  const [category] = await db.select({ name: serviceCategories.name }).from(serviceCategories).where(eq(serviceCategories.id, id))
+  if (!category) return { ok: false, error: "Servicio no encontrado." }
+  const references = await db.select({ id: appointments.id }).from(appointments).where(sql`service LIKE ${`%${category.name}%`}`).limit(1)
+  if (references.length) return { ok: false, error: "No se puede eliminar: tiene turnos asociados. Podés ocultarlo." }
+  await db.delete(serviceTreatments).where(eq(serviceTreatments.categoryId, id))
+  await db.delete(serviceCategories).where(eq(serviceCategories.id, id))
   revalidatePath("/")
   revalidatePath("/admin")
   return { ok: true }
