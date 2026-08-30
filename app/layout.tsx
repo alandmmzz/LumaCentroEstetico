@@ -3,6 +3,7 @@ import { SpeedInsights } from '@vercel/speed-insights/next'
 import type { Metadata, Viewport } from 'next'
 import { Cormorant_Garamond, Jost } from 'next/font/google'
 import './globals.css'
+import { Toaster } from 'sonner'
 
 const cormorant = Cormorant_Garamond({
   subsets: ['latin'],
@@ -81,6 +82,7 @@ export default function RootLayout({
           }}
         />
         {children}
+        <Toaster position="top-right" richColors closeButton />
         {process.env.NODE_ENV === 'production' && <Analytics />}
         {process.env.NODE_ENV === 'production' && <SpeedInsights />}
       </body>
