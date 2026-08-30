@@ -2,8 +2,8 @@
 
 import { db } from "@/lib/db"
 import { appointments, serviceCategories, serviceTreatments, serviceSchedules, staff } from "@/lib/db/schema"
-import { catalogPrice, getAllServiceCatalog } from "@/lib/db/services"
-import { formatServiceLabel } from "@/lib/services"
+import { catalogPrice, catalogServiceLabel, getAllServiceCatalog } from "@/lib/db/services"
+
 import { getScheduleForCategory, isOnlineCategory, isTimeAvailable, whatsappUrl } from "@/lib/schedule"
 import { createMercadoPagoPreference, getMercadoPagoPayment, isMercadoPagoEnabled } from "@/lib/mercadopago"
 import { and, asc, desc, eq, ne } from "drizzle-orm"
@@ -105,6 +105,7 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
     service,
     date: appointmentDate,
     time: appointmentTime,
+    catalog,
   })
   revalidatePath("/admin")
   return { ok: true, id: row.id }
@@ -165,7 +166,7 @@ export async function assignStaff(id: number, staffId: number | null) {
   return { ok: true }
 }
 
-type AppointmentEmail = { to: string[]; clientName: string; email?: string; phone: string; service: string; date: string; time: string }
+type AppointmentEmail = { to: string[]; clientName: string; email?: string; phone: string; service: string; date: string; time: string; catalog: Awaited<ReturnType<typeof getAllServiceCatalog>> }
 
 function formatEmailDate(dateKey: string) {
   try {
@@ -308,7 +309,7 @@ async function sendResendEmail(to: string, subject: string, html: string) {
 }
 
 async function sendAppointmentRequestEmail(data: AppointmentEmail) {
-  const serviceLabel = formatServiceLabel(data.service)
+  const serviceLabel = catalogServiceLabel(data.service, data.catalog)
   const bodyHtml = `
     <p style="margin:0 0 20px 0;">Llegó una nueva solicitud de turno de <strong>${data.clientName}</strong>. Estos son los datos:</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9f4ea;border-radius:10px;padding:4px 16px;margin-bottom:8px;">
