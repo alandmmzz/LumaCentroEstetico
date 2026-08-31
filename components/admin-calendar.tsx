@@ -1,7 +1,7 @@
 "use client"
 
 import type { Appointment } from "@/lib/db/schema"
-import { formatServiceLabel } from "@/lib/services"
+import type { ServiceCatalog } from "@/lib/db/services"
 import { ChevronLeft, ChevronRight, CalendarDays, Columns3 } from "lucide-react"
 import { useMemo, useState } from "react"
 
@@ -32,6 +32,17 @@ function toKey(year: number, month: number, day: number) {
   return `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`
 }
 
+function formatCatalogServiceLabel(value: string, catalog: ServiceCatalog) {
+  try {
+    const selected = JSON.parse(value) as { category?: string; treatmentIds?: string[] | number[] }
+    const category = catalog.find((item) => item.name === selected.category)
+    const names = category?.treatments.filter((treatment) => selected.treatmentIds?.some((id) => String(id) === String(treatment.id))).map((treatment) => treatment.name)
+    return names?.length ? `${selected.category}: ${names.join(", ")}` : selected.category ?? value
+  } catch {
+    return value
+  }
+}
+
 function getServiceCategory(value: string) {
   try { return JSON.parse(value).category ?? value } catch { return value }
 }
@@ -47,8 +58,10 @@ function formatLong(key: string) {
 
 export function AdminCalendar({
   appointments,
+  catalog,
 }: {
   appointments: Appointment[]
+  catalog: ServiceCatalog
 }) {
   const today = new Date()
   const [cursor, setCursor] = useState({
@@ -213,7 +226,7 @@ export function AdminCalendar({
                     {a.name}
                   </p>
                   <p className="truncate text-xs text-muted-foreground">
-                    {formatServiceLabel(a.service)}
+                    {formatCatalogServiceLabel(a.service, catalog)}
                   </p>
                 </div>
                 <span
@@ -230,7 +243,7 @@ export function AdminCalendar({
               <span />{Array.from({ length: 14 }, (_, index) => <span key={index} className="border-l border-border pl-1">{String(index + 8).padStart(2, "0")}:00</span>)}
             </div>
             <div className="flex min-w-[620px] flex-col gap-2">
-              {selectedList.map((a) => { const start = Number(a.appointmentTime.split(":")[0]) + Number(a.appointmentTime.split(":")[1]) / 60; const duration = getServiceCategory(a.service) === "Promos" ? 4 : 1.5; return <div key={a.id} className="grid grid-cols-[5rem_repeat(14,minmax(2.5rem,1fr))] items-center"><span className="truncate pr-2 text-xs text-foreground">{a.name}</span><span className={`col-span-14 h-7 rounded-md px-2 py-1 text-[10px] text-primary-foreground ${statusDot[a.status] === "bg-destructive" ? "bg-destructive" : "bg-primary"}`} style={{ gridColumn: `${Math.max(2, Math.floor(start - 8) + 2)} / span ${Math.max(1, Math.ceil(duration))}` }}>{a.appointmentTime} · {formatServiceLabel(a.service)}</span></div> })}
+              {selectedList.map((a) => { const start = Number(a.appointmentTime.split(":")[0]) + Number(a.appointmentTime.split(":")[1]) / 60; const duration = getServiceCategory(a.service) === "Promos" ? 4 : 1.5; return <div key={a.id} className="grid grid-cols-[5rem_repeat(14,minmax(2.5rem,1fr))] items-start"><span className="truncate pr-2 pt-1 text-xs text-foreground">{a.name}</span><span className={`col-span-14 min-h-7 rounded-md px-2 py-1 text-[10px] leading-relaxed text-primary-foreground ${statusDot[a.status] === "bg-destructive" ? "bg-destructive" : "bg-primary"}`} style={{ gridColumn: `${Math.max(2, Math.floor(start - 8) + 2)} / span ${Math.max(1, Math.ceil(duration))}` }}>{a.appointmentTime} · {formatCatalogServiceLabel(a.service, catalog)}</span></div> })}
             </div>
           </div>
           </div>
