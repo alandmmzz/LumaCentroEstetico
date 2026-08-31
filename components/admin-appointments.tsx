@@ -105,7 +105,7 @@ export function AdminAppointments({
         <div className="flex items-center gap-2">
           <button type="button" onClick={() => setFiltersOpen((open) => !open)} className={`inline-flex items-center justify-center rounded-full border p-2.5 ${filtersOpen ? "border-primary bg-primary/10 text-primary" : "border-border text-muted-foreground hover:border-primary/50"}`} aria-expanded={filtersOpen} aria-controls="appointment-filters" aria-label={filtersOpen ? "Ocultar filtros" : "Mostrar filtros"}>{filtersOpen ? <X className="h-4 w-4" /> : <Filter className="h-4 w-4" />}</button>
           <button type="button" onClick={downloadSummary} className="inline-flex items-center justify-center rounded-full border border-primary/40 p-2.5 text-primary hover:bg-primary/10" aria-label="Descargar CSV"><Download className="h-4 w-4" /></button>
-          <AdminNewAppointment staff={staff} trigger={<span className="inline-flex items-center justify-center rounded-full bg-primary p-2.5 text-primary-foreground" aria-label="Añadir nuevo turno"><Plus className="h-4 w-4" /></span>} />
+          <AdminNewAppointment staff={staff} catalog={catalog} trigger={<span className="inline-flex items-center justify-center rounded-full bg-primary p-2.5 text-primary-foreground" aria-label="Añadir nuevo turno"><Plus className="h-4 w-4" /></span>} />
         </div>
       </div>
       <div className="mb-6 text-sm text-muted-foreground">Ingresos: <strong className="text-foreground">{formatUYU(monthlyIncome)}</strong></div>

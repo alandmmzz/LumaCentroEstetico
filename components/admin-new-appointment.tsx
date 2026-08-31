@@ -3,15 +3,16 @@
 import { createManualAppointment } from "@/app/actions/appointments"
 import { SERVICE_CATEGORIES, formatUYU } from "@/lib/services"
 import type { OnlineCategory } from "@/lib/schedule"
+import type { ServiceCatalog } from "@/lib/db/services"
 import { useState, useTransition } from "react"
 
-export function AdminNewAppointment({ staff, trigger }: { staff: { id: number; name: string }[]; trigger?: React.ReactNode }) {
+export function AdminNewAppointment({ staff, catalog, trigger }: { staff: { id: number; name: string }[]; catalog: ServiceCatalog; trigger?: React.ReactNode }) {
   const [open, setOpen] = useState(false)
-  const [category, setCategory] = useState<OnlineCategory>(SERVICE_CATEGORIES[0].name as OnlineCategory)
-  const [treatments, setTreatments] = useState<string[]>([SERVICE_CATEGORIES[0].treatments[0].id])
+  const [category, setCategory] = useState<OnlineCategory>(catalog[0]?.name as OnlineCategory)
+  const [treatments, setTreatments] = useState<string[]>([String(catalog[0]?.treatments[0]?.id ?? "")])
   const [isPending, startTransition] = useTransition()
-  const selectedCategory = SERVICE_CATEGORIES.find((item) => item.name === category) ?? SERVICE_CATEGORIES[0]
-  const price = selectedCategory.treatments.filter((item) => treatments.includes(item.id)).reduce((sum, item) => sum + (item.price ?? 0), 0)
+  const selectedCategory = catalog.find((item) => item.name === category) ?? catalog[0]
+  const price = selectedCategory.treatments.filter((item) => treatments.includes(String(item.id))).reduce((sum, item) => sum + (item.price ?? 0), 0)
 
   function selectCategory(value: string) {
     const next = SERVICE_CATEGORIES.find((item) => item.name === value) ?? SERVICE_CATEGORIES[0]
@@ -43,7 +44,7 @@ export function AdminNewAppointment({ staff, trigger }: { staff: { id: number; n
           <label className="text-sm text-foreground">Fecha<input required name="date" type="date" className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2" /></label>
           <label className="text-sm text-foreground">Hora<input required name="time" type="time" className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2" /></label>
           <label className="text-sm text-foreground sm:col-span-2">Servicio<select value={category} onChange={(e) => selectCategory(e.target.value)} className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2">{SERVICE_CATEGORIES.map((item) => <option key={item.name}>{item.name}</option>)}</select></label>
-          <div className="sm:col-span-2"><p className="mb-2 text-sm text-foreground">Sub-servicios</p><div className="flex flex-wrap gap-2">{selectedCategory.treatments.map((item) => <label key={item.id} className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-xs"><input type="checkbox" checked={treatments.includes(item.id)} onChange={() => setTreatments((current) => current.includes(item.id) ? current.filter((id) => id !== item.id) : [...current, item.id])} />{item.name}</label>)}</div></div>
+          <div className="sm:col-span-2"><p className="mb-2 text-sm text-foreground">Sub-servicios</p><div className="flex flex-wrap gap-2">{selectedCategory.treatments.map((item) => <label key={item.id} className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-xs"><input type="checkbox" checked={treatments.includes(String(item.id))} onChange={() => setTreatments((current) => current.includes(String(item.id)) ? current.filter((id) => id !== String(item.id)) : [...current, String(item.id)])} />{item.name}</label>)}</div></div>
           <label className="text-sm text-foreground">Profesional<select name="staffId" className="mt-1 w-full rounded-md border border-input bg-card px-3 py-2"><option value="">Sin asignar</option>{staff.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}</select></label>
           <div className="flex items-end text-sm text-muted-foreground">Precio sugerido: <strong className="ml-1 text-primary">{formatUYU(price)}</strong></div>
         </div>
