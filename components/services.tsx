@@ -22,14 +22,32 @@ export function Services({ catalog = services }: { catalog?: PublicService[] } =
           </h2>
         </div>
 
-        <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-center">
-          <div className="relative aspect-[4/5] overflow-hidden rounded-lg">
-            <Image
-              src="/services-luma.png"
-              alt="Detalle de tratamiento de belleza en LUMA"
-              fill
-              className="object-cover"
-            />
+        <div className="grid gap-10 lg:grid-cols-[1fr_1.1fr] lg:items-stretch">
+          <div className="grid gap-3 lg:min-h-full lg:grid-rows-3">
+            <div className="relative min-h-64 overflow-hidden rounded-lg lg:min-h-0">
+              <Image
+                src="/services-luma.png"
+                alt="Ambiente de tratamientos de belleza en LUMA"
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div className="relative hidden min-h-64 overflow-hidden rounded-lg lg:block lg:min-h-0">
+              <Image
+                src="/services-pedicure.png"
+                alt="Tratamiento de pedicuría en LUMA"
+                fill
+                className="object-cover"
+              />
+            </div>
+            <div className="relative hidden min-h-64 overflow-hidden rounded-lg lg:block lg:min-h-0">
+              <Image
+                src="/services-cosmetology.png"
+                alt="Tratamiento de cosmetología en LUMA"
+                fill
+                className="object-cover"
+              />
+            </div>
           </div>
 
           <ul className="divide-y divide-border">
