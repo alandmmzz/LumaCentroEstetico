@@ -184,14 +184,14 @@ const WHATSAPP_EMAIL_URL = whatsappUrl("Hola! Te escribo desde el mail de LUMA."
 
 // Iconos lucide (outline, stroke=currentColor) embebidos como SVG inline para usar en los emails.
 const emailIcons = {
-  sparkles: "✦",
-  calendar: "▣",
-  clock: "◷",
-  phone: "☎",
-  mail: "✉",
-  heart: "♥",
-  instagram: "◎",
-  whatsapp: "◌",
+  sparkles: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b8976b" stroke-width="1.8" stroke-linecap="round"><path d="M12 3v4M12 17v4M3 12h4M17 12h4M5.6 5.6l2.8 2.8M15.6 15.6l2.8 2.8M18.4 5.6l-2.8 2.8M8.4 15.6l-2.8 2.8"/></svg>',
+  calendar: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b8976b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>',
+  clock: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b8976b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  phone: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b8976b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.9v3a2 2 0 0 1-2.2 2A19.8 19.8 0 0 1 3.1 5.2 2 2 0 0 1 5.1 3h3a2 2 0 0 1 2 1.7l.5 2.2a2 2 0 0 1-.6 1.8L8.7 10a16 16 0 0 0 5.3 5.3l1.3-1.3a2 2 0 0 1 1.8-.6l2.2.5a2 2 0 0 1 1.7 2Z"/></svg>',
+  mail: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b8976b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>',
+  heart: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b8976b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.8 8.8c0 5.5-8.8 10.2-8.8 10.2S3.2 14.3 3.2 8.8A4.7 4.7 0 0 1 12 6.2a4.7 4.7 0 0 1 8.8 2.6Z"/></svg>',
+  instagram: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b8976b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r=".8" fill="#b8976b" stroke="none"/></svg>',
+  whatsapp: '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#b8976b" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11.5a8 8 0 0 1-11.8 7L4 20l1.5-4.1A8 8 0 1 1 20 11.5Z"/><path d="M9 8.5c.3 2.1 2.1 4 4.2 4.5l1.3-1.2"/></svg>',
 }
 
 // Layout base con la identidad de LUMA para todos los emails transaccionales.
@@ -335,7 +335,7 @@ async function sendAppointmentRequestEmail(data: AppointmentEmail) {
 
 async function sendAppointmentEmail(to: string, clientName: string, staffName: string, date: string, time: string) {
   const bodyHtml = `
-    <p style="margin:0 0 20px 0;">Hola ${clientName} ✨</p>
+    <p style="margin:0 0 20px 0;">Hola ${clientName}</p>
     <p style="margin:0 0 20px 0;">Nos alegra confirmar tu turno en <strong>LUMA Centro Estético</strong>.</p>
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f9f4ea;border-radius:10px;padding:4px 16px;margin-bottom:8px;">
       ${detailRow(emailIcons.calendar, "Fecha", formatEmailDate(date))}
@@ -352,7 +352,7 @@ async function sendAppointmentEmail(to: string, clientName: string, staffName: s
     emailLayout({
       preheader: `Tu turno del ${formatEmailDate(date)} a las ${time} hs quedó confirmado`,
       eyebrow: "Turno confirmado",
-      heading: "¡Te esperamos! 🤍",
+      heading: "¡Te esperamos!",
       bodyHtml,
     }),
   )

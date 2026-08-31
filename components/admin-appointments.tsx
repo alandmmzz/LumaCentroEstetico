@@ -23,10 +23,10 @@ const statusLabels: Record<string, string> = {
 }
 
 const statusStyles: Record<string, string> = {
-  pendiente: "bg-accent text-accent-foreground",
-  confirmado: "bg-primary/15 text-primary",
-  pago: "bg-primary text-primary-foreground",
-  cancelado: "bg-destructive/10 text-destructive",
+  pendiente: "border border-primary/35 bg-primary/5 text-primary",
+  confirmado: "border border-primary/25 bg-secondary text-secondary-foreground",
+  pago: "border border-primary bg-primary text-primary-foreground",
+  cancelado: "border border-destructive/30 bg-destructive/10 text-destructive",
 }
 
 function formatDate(value: string) {
