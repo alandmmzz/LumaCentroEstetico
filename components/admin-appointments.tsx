@@ -72,6 +72,9 @@ export function AdminAppointments({
   const [serviceFilter, setServiceFilter] = useState("todos")
   const [staffFilter, setStaffFilter] = useState("todos")
   const [month, setMonth] = useState("")
+  const [sort, setSort] = useState("fecha")
+  const [page, setPage] = useState(1)
+  const pageSize = 50
   const [paymentAmounts, setPaymentAmounts] = useState<Record<number, number>>(
     () => Object.fromEntries(appointments.map((appointment) => [appointment.id, appointment.paymentReceived || appointment.price])),
   )
@@ -85,10 +88,19 @@ export function AdminAppointments({
     (!month || a.appointmentDate.startsWith(month))
   )
 
+  const sorted = [...filtered].sort((a, b) => {
+    if (sort === "creacion") return b.id - a.id
+    return `${a.appointmentDate}T${a.appointmentTime}`.localeCompare(`${b.appointmentDate}T${b.appointmentTime}`)
+  })
+
+  const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize))
+  const currentPage = Math.min(page, pageCount)
+  const visibleAppointments = sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize)
+
   const monthlyIncome = filtered.reduce((total, appointment) => total + (appointment.status === "pago" ? (paymentAmounts[appointment.id] ?? appointment.paymentReceived ?? appointment.price) : 0), 0)
 
   function downloadSummary() {
-    const rows = [["Cliente", "Fecha", "Hora", "Servicio", "Profesional", "Pago recibido"], ...filtered.map((a) => [a.name, formatDateShort(a.appointmentDate), a.appointmentTime, formatCatalogServiceLabel(a.service, catalog), staff.find((p) => p.id === a.staffId)?.name ?? "Sin asignar", String(paymentAmounts[a.id] ?? a.price)])]
+    const rows = [["Cliente", "Fecha", "Hora", "Servicio", "Profesional", "Pago recibido"], ...sorted.map((a) => [a.name, formatDateShort(a.appointmentDate), a.appointmentTime, formatCatalogServiceLabel(a.service, catalog), staff.find((p) => p.id === a.staffId)?.name ?? "Sin asignar", String(paymentAmounts[a.id] ?? a.price)])]
     const csv = rows.map((row) => row.map((cell) => `"${cell.replaceAll('"', '""')}"`).join(",")).join("\\n")
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8" })
     const url = URL.createObjectURL(blob)
@@ -132,6 +144,11 @@ export function AdminAppointments({
           <option value="">Sin asignar</option>
           {staff.map((person) => <option key={person.id} value={person.id}>{person.name}</option>)}
         </select>
+        <label className="sr-only" htmlFor="sort-order">Ordenar por</label>
+        <select id="sort-order" value={sort} onChange={(event) => setSort(event.target.value)} className="min-w-0 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">
+          <option value="fecha">Ordenar por fecha del turno</option>
+          <option value="creacion">Ordenar por creación (más reciente)</option>
+        </select>
         </div>
       </div>
 
@@ -154,7 +171,7 @@ export function AdminAppointments({
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {filtered.map((a) => (
+              {visibleAppointments.map((a) => (
                 <tr key={a.id} className="bg-card/40">
                   <td className="px-4 py-3 font-medium text-foreground">
                     <div>{a.name}</div>
@@ -240,6 +257,16 @@ export function AdminAppointments({
             </tbody>
           </table>
         </div>
+      )}
+      {filtered.length > pageSize && (
+        <nav className="mt-4 flex items-center justify-between gap-4 text-sm text-muted-foreground" aria-label="Paginación de turnos">
+          <span>Mostrando {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, sorted.length)} de {sorted.length}</span>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1} className="rounded-md border border-border px-3 py-1.5 text-foreground disabled:cursor-not-allowed disabled:opacity-40">Anterior</button>
+            <span aria-live="polite">Página {page} de {pageCount}</span>
+            <button type="button" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page === pageCount} className="rounded-md border border-border px-3 py-1.5 text-foreground disabled:cursor-not-allowed disabled:opacity-40">Siguiente</button>
+          </div>
+        </nav>
       )}
     </div>
   )
