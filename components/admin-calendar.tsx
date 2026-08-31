@@ -34,9 +34,10 @@ function toKey(year: number, month: number, day: number) {
 
 function formatCatalogServiceLabel(value: string, catalog: ServiceCatalog) {
   try {
-    const selected = JSON.parse(value) as { category?: string; treatmentIds?: string[] | number[] }
+    const selected = JSON.parse(value) as { category?: string; treatmentIds?: (string | number)[] }
     const category = catalog.find((item) => item.name === selected.category)
-    const names = category?.treatments.filter((treatment) => selected.treatmentIds?.some((id) => String(id) === String(treatment.id))).map((treatment) => treatment.name)
+    const normalize = (input: string | number) => String(input).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+    const names = category?.treatments.filter((treatment) => selected.treatmentIds?.some((id) => String(id) === String(treatment.id) || normalize(id) === normalize(treatment.name))).map((treatment) => treatment.name)
     return names?.length ? `${selected.category}: ${names.join(", ")}` : selected.category ?? value
   } catch {
     return value
