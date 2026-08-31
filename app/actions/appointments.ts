@@ -248,14 +248,10 @@ function emailLayout(options: { preheader: string; eyebrow: string; heading: str
                 <table role="presentation" cellpadding="0" cellspacing="0" style="margin:18px auto 0 auto;">
                   <tr>
                     <td style="padding:0 6px;">
-                      <a href="https://instagram.com/luma_centroestetico" style="display:inline-block;width:30px;height:30px;line-height:30px;border-radius:50%;background-color:#f2ece1;text-align:center;">
-                        <span style="display:inline-block;vertical-align:middle;color:#b8976b;font-family:Arial,sans-serif;font-size:17px;line-height:30px;">${emailIcons.instagram}</span>
-                      </a>
+                      <a href="https://instagram.com/luma_centroestetico" style="display:inline-block;padding:0 10px;height:30px;line-height:30px;border-radius:15px;background-color:#f2ece1;text-align:center;color:#8a6b43;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:.2px;text-decoration:none;">Instagram</a>
                     </td>
                     <td style="padding:0 6px;">
-                      <a href="${WHATSAPP_EMAIL_URL}" style="display:inline-block;width:30px;height:30px;line-height:30px;border-radius:50%;background-color:#f2ece1;text-align:center;">
-                        <span style="display:inline-block;vertical-align:middle;color:#b8976b;font-family:Arial,sans-serif;font-size:17px;line-height:30px;">${emailIcons.whatsapp}</span>
-                      </a>
+                      <a href="${WHATSAPP_EMAIL_URL}" style="display:inline-block;padding:0 10px;height:30px;line-height:30px;border-radius:15px;background-color:#f2ece1;text-align:center;color:#8a6b43;font-family:Arial,sans-serif;font-size:10px;font-weight:bold;letter-spacing:.2px;text-decoration:none;">WhatsApp</a>
                     </td>
                   </tr>
                 </table>
