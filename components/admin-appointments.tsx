@@ -73,6 +73,8 @@ export function AdminAppointments({
   const [staffFilter, setStaffFilter] = useState("todos")
   const [month, setMonth] = useState("")
   const [sort, setSort] = useState("fecha")
+  const [page, setPage] = useState(1)
+  const pageSize = 50
   const [paymentAmounts, setPaymentAmounts] = useState<Record<number, number>>(
     () => Object.fromEntries(appointments.map((appointment) => [appointment.id, appointment.paymentReceived || appointment.price])),
   )
@@ -90,6 +92,10 @@ export function AdminAppointments({
     if (sort === "creacion") return b.id - a.id
     return `${a.appointmentDate}T${a.appointmentTime}`.localeCompare(`${b.appointmentDate}T${b.appointmentTime}`)
   })
+
+  const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize))
+  const currentPage = Math.min(page, pageCount)
+  const visibleAppointments = sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const monthlyIncome = filtered.reduce((total, appointment) => total + (appointment.status === "pago" ? (paymentAmounts[appointment.id] ?? appointment.paymentReceived ?? appointment.price) : 0), 0)
 
@@ -165,7 +171,7 @@ export function AdminAppointments({
               </tr>
             </thead>
             <tbody className="divide-y divide-border">
-              {sorted.map((a) => (
+              {visibleAppointments.map((a) => (
                 <tr key={a.id} className="bg-card/40">
                   <td className="px-4 py-3 font-medium text-foreground">
                     <div>{a.name}</div>
@@ -251,6 +257,16 @@ export function AdminAppointments({
             </tbody>
           </table>
         </div>
+      )}
+      {filtered.length > pageSize && (
+        <nav className="mt-4 flex items-center justify-between gap-4 text-sm text-muted-foreground" aria-label="Paginación de turnos">
+          <span>Mostrando {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, sorted.length)} de {sorted.length}</span>
+          <div className="flex items-center gap-2">
+            <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1} className="rounded-md border border-border px-3 py-1.5 text-foreground disabled:cursor-not-allowed disabled:opacity-40">Anterior</button>
+            <span aria-live="polite">Página {page} de {pageCount}</span>
+            <button type="button" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page === pageCount} className="rounded-md border border-border px-3 py-1.5 text-foreground disabled:cursor-not-allowed disabled:opacity-40">Siguiente</button>
+          </div>
+        </nav>
       )}
     </div>
   )
