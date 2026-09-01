@@ -2,7 +2,7 @@
 
 import type { Appointment } from "@/lib/db/schema"
 import type { ServiceCatalog } from "@/lib/db/services"
-import { ChevronLeft, ChevronRight, CalendarDays, Columns3 } from "lucide-react"
+import { ChevronLeft, ChevronRight, CalendarDays } from "lucide-react"
 import { useMemo, useState } from "react"
 
 const MONTHS = [
@@ -200,7 +200,6 @@ export function AdminCalendar({
       <div className="min-w-0 max-w-full overflow-hidden rounded-xl border border-border bg-card/60 p-6">
         <div className="mb-4 flex min-w-0 items-center gap-2 text-primary">
           <CalendarDays className="h-4 w-4" />
-          <button type="button" onClick={() => setShowGantt((value) => !value)} className="ml-auto inline-flex items-center gap-1 rounded-full border border-primary/40 px-2.5 py-1 text-[10px] uppercase tracking-wider text-primary lg:hidden" aria-label={showGantt ? "Mostrar listado" : "Mostrar vista Gantt"}><Columns3 className="h-3.5 w-3.5" />{showGantt ? "Lista" : "Gantt"}</button>
           <h3 className="text-xs uppercase tracking-[0.25em]">
             {selected ? formatLong(selected) : "Seleccioná un día"}
           </h3>
@@ -265,6 +264,12 @@ export function AdminCalendar({
                   </div>
                 )
               })}
+            </div>
+          </div>
+          <div className="mt-5 flex justify-center border-t border-border/70 pt-4 lg:hidden">
+            <div className="inline-flex rounded-full border border-border bg-background/60 p-1" role="group" aria-label="Modo de agenda">
+              <button type="button" onClick={() => setShowGantt(false)} aria-pressed={!showGantt} className={`rounded-full px-4 py-2 text-xs transition-colors ${!showGantt ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>Modo lista</button>
+              <button type="button" onClick={() => setShowGantt(true)} aria-pressed={showGantt} className={`rounded-full px-4 py-2 text-xs transition-colors ${showGantt ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground"}`}>Modo Gantt</button>
             </div>
           </div>
           </div>
