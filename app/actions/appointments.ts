@@ -427,6 +427,14 @@ export async function deleteServiceCategory(id: number) {
   return { ok: true }
 }
 
+export async function updateServiceDuration(id: number, durationMinutes: number) {
+  if (!Number.isInteger(durationMinutes) || durationMinutes < 15 || durationMinutes > 480) return { ok: false, error: "La duración debe estar entre 15 y 480 minutos." }
+  await db.update(serviceCategories).set({ durationMinutes }).where(eq(serviceCategories.id, id))
+  revalidatePath("/")
+  revalidatePath("/admin")
+  return { ok: true }
+}
+
 export async function updateServiceCategory(id: number, name: string, description: string) {
   const cleanName = name.trim()
   if (!cleanName) return { ok: false, error: "Ingresá un nombre." }
