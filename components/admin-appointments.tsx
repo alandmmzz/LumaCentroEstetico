@@ -11,7 +11,7 @@ import type { Appointment, Staff } from "@/lib/db/schema"
 import { SERVICE_CATEGORIES, formatUYU } from "@/lib/services"
 import type { ServiceCatalog } from "@/lib/db/services"
 import { Filter, Download, Plus, X } from "lucide-react"
-import { useState, useTransition } from "react"
+import { useEffect, useState, useTransition } from "react"
 
 const STATUS_OPTIONS = ["pendiente", "confirmado", "pago", "cancelado"]
 
@@ -95,6 +95,10 @@ export function AdminAppointments({
 
   const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize))
   const currentPage = Math.min(page, pageCount)
+
+  useEffect(() => {
+    setPage(1)
+  }, [filter, serviceFilter, staffFilter, month, sort])
   const visibleAppointments = sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const monthlyIncome = filtered.reduce((total, appointment) => total + (appointment.status === "pago" ? (paymentAmounts[appointment.id] ?? appointment.paymentReceived ?? appointment.price) : 0), 0)
@@ -260,11 +264,11 @@ export function AdminAppointments({
       )}
       {filtered.length > pageSize && (
         <nav className="mt-4 flex items-center justify-between gap-4 text-sm text-muted-foreground" aria-label="Paginación de turnos">
-          <span>Mostrando {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, sorted.length)} de {sorted.length}</span>
+          <span>Mostrando {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, sorted.length)} de {sorted.length}</span>
           <div className="flex items-center gap-2">
-            <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={page === 1} className="rounded-md border border-border px-3 py-1.5 text-foreground disabled:cursor-not-allowed disabled:opacity-40">Anterior</button>
-            <span aria-live="polite">Página {page} de {pageCount}</span>
-            <button type="button" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={page === pageCount} className="rounded-md border border-border px-3 py-1.5 text-foreground disabled:cursor-not-allowed disabled:opacity-40">Siguiente</button>
+            <button type="button" onClick={() => setPage((current) => Math.max(1, current - 1))} disabled={currentPage === 1} className="rounded-md border border-border px-3 py-1.5 text-foreground disabled:cursor-not-allowed disabled:opacity-40">Anterior</button>
+            <span aria-live="polite">Página {currentPage} de {pageCount}</span>
+            <button type="button" onClick={() => setPage((current) => Math.min(pageCount, current + 1))} disabled={currentPage === pageCount} className="rounded-md border border-border px-3 py-1.5 text-foreground disabled:cursor-not-allowed disabled:opacity-40">Siguiente</button>
           </div>
         </nav>
       )}
