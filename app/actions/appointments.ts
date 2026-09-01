@@ -70,8 +70,11 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
         ne(appointments.status, "cancelado"),
       ),
     )
-  const booked = existingAtTime.map((item) => ({ category: getAppointmentCategory(item.service), time: item.appointmentTime }))
-  if (!isTimeAvailable(selection.category, appointmentTime, booked)) {
+  const booked = existingAtTime.map((item) => {
+    const bookedCategory = getAppointmentCategory(item.service)
+    return { category: bookedCategory, time: item.appointmentTime, durationMinutes: catalog.find((item) => item.name === bookedCategory)?.durationMinutes }
+  })
+  if (!isTimeAvailable(selection.category, appointmentTime, booked, category.durationMinutes)) {
     return { ok: false, error: "Ese horario se superpone con otro turno o supera la capacidad disponible." }
   }
 
