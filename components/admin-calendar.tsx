@@ -240,11 +240,31 @@ export function AdminCalendar({
             ))}
           </ul>
           <div className={`${showGantt ? "block" : "hidden lg:block"} mt-4 overflow-x-auto rounded-lg border border-border bg-background/40 p-3`} aria-label="Vista Gantt del día">
-            <div className="mb-2 grid min-w-[620px] grid-cols-[5rem_repeat(14,minmax(2.5rem,1fr))] text-[10px] text-muted-foreground">
-              <span />{Array.from({ length: 14 }, (_, index) => <span key={index} className="border-l border-border pl-1">{String(index + 8).padStart(2, "0")}:00</span>)}
+            <div className="mb-2 grid min-w-[620px] grid-cols-[5rem_1fr] text-[10px] text-muted-foreground">
+              <span />
+              <div className="grid grid-cols-14">
+                {Array.from({ length: 14 }, (_, index) => <span key={index} className="border-l border-border pl-1">{String(index + 8).padStart(2, "0")}:00</span>)}
+              </div>
             </div>
             <div className="flex min-w-[620px] flex-col gap-2">
-              {selectedList.map((a) => { const [hours, minutes] = a.appointmentTime.split(":").map(Number); const start = hours + (minutes || 0) / 60; const duration = getServiceCategory(a.service) === "Promos" ? 4 : 1.5; const totalHours = 14; const left = Math.min(100, Math.max(0, ((start - 8) / totalHours) * 100)); const width = Math.min(100 - left, Math.max(4, (duration / totalHours) * 100)); return <div key={a.id} className="grid grid-cols-[5rem_1fr] items-start"><span className="truncate pr-2 pt-1 text-xs text-foreground">{a.name}</span><div className="relative min-h-8"><span className={`absolute top-0 min-h-7 rounded-md px-2 py-1 text-[10px] leading-relaxed text-primary-foreground ${statusDot[a.status] === "bg-destructive" ? "bg-destructive" : "bg-primary"}`} style={{ left: `${left}%`, width: `${width}%` }}>{a.appointmentTime} · {formatCatalogServiceLabel(a.service, catalog)}</span></div></div> })}
+              {selectedList.map((a) => {
+                const [hours, minutes] = a.appointmentTime.split(":").map(Number)
+                const start = hours + (minutes || 0) / 60
+                const duration = getServiceCategory(a.service) === "Promos" ? 4 : 1.5
+                const totalHours = 14
+                const left = Math.min(100, Math.max(0, ((start - 8) / totalHours) * 100))
+                const width = Math.min(100 - left, Math.max(4, (duration / totalHours) * 100))
+                return (
+                  <div key={a.id} className="grid min-h-10 grid-cols-[5rem_1fr] items-center">
+                    <span className="truncate pr-2 text-xs text-foreground">{a.name}</span>
+                    <div className="relative h-9">
+                      <span className={`absolute top-0 flex h-9 items-center truncate rounded-md px-2 text-[10px] leading-tight text-primary-foreground ${statusDot[a.status] === "bg-destructive" ? "bg-destructive" : "bg-primary"}`} style={{ left: `${left}%`, width: `${width}%` }} title={`${a.appointmentTime} · ${getServiceCategory(a.service)}`}>
+                        {a.appointmentTime} · {getServiceCategory(a.service)}
+                      </span>
+                    </div>
+                  </div>
+                )
+              })}
             </div>
           </div>
           </div>
