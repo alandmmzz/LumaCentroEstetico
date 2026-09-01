@@ -250,7 +250,7 @@ export function AdminCalendar({
               {selectedList.map((a) => {
                 const [hours, minutes] = a.appointmentTime.split(":").map(Number)
                 const start = hours + (minutes || 0) / 60
-                const duration = getServiceCategory(a.service) === "Promos" ? 4 : 1.5
+                const duration = (catalog.find((item) => item.name === getServiceCategory(a.service))?.durationMinutes ?? 90) / 60
                 const totalHours = 14
                 const left = Math.min(100, Math.max(0, ((start - 8) / totalHours) * 100))
                 const width = Math.min(100 - left, Math.max(4, (duration / totalHours) * 100))

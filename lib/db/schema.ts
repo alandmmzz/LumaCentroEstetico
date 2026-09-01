@@ -33,6 +33,7 @@ export const serviceCategories = pgTable("service_categories", {
   name: text("name").notNull().unique(),
   description: text("description").notNull().default(""),
   icon: text("icon").notNull().default("sparkles"),
+  durationMinutes: integer("duration_minutes").notNull().default(90),
   sortOrder: integer("sort_order").notNull().default(0),
   active: boolean("active").notNull().default(true),
 })

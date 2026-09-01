@@ -66,12 +66,14 @@ export async function createAppointment(formData: FormData): Promise<BookingResu
     .where(
       and(
         eq(appointments.appointmentDate, appointmentDate),
-        eq(appointments.appointmentTime, appointmentTime),
         ne(appointments.status, "cancelado"),
       ),
     )
-  const booked = existingAtTime.map((item) => ({ category: getAppointmentCategory(item.service), time: item.appointmentTime }))
-  if (!isTimeAvailable(selection.category, appointmentTime, booked)) {
+  const booked = existingAtTime.map((item) => {
+    const bookedCategory = getAppointmentCategory(item.service)
+    return { category: bookedCategory, time: item.appointmentTime, durationMinutes: catalog.find((item) => item.name === bookedCategory)?.durationMinutes ?? 90 }
+  })
+  if (!isTimeAvailable(selection.category, appointmentTime, booked, category.durationMinutes)) {
     return { ok: false, error: "Ese horario se superpone con otro turno o supera la capacidad disponible." }
   }
 
@@ -427,6 +429,14 @@ export async function deleteServiceCategory(id: number) {
   return { ok: true }
 }
 
+export async function updateServiceDuration(id: number, durationMinutes: number) {
+  if (!Number.isInteger(durationMinutes) || durationMinutes < 15 || durationMinutes > 480) return { ok: false, error: "La duración debe estar entre 15 y 480 minutos." }
+  await db.update(serviceCategories).set({ durationMinutes }).where(eq(serviceCategories.id, id))
+  revalidatePath("/")
+  revalidatePath("/admin")
+  return { ok: true }
+}
+
 export async function updateServiceCategory(id: number, name: string, description: string) {
   const cleanName = name.trim()
   if (!cleanName) return { ok: false, error: "Ingresá un nombre." }
@@ -442,6 +452,7 @@ export async function getAppointmentById(id: number) {
 }
 
 export async function getBookedTimes(appointmentDate: string, category?: string) {
+  const catalog = await getAllServiceCatalog()
   const rows = await db
     .select({ appointmentTime: appointments.appointmentTime, service: appointments.service })
     .from(appointments)
@@ -451,9 +462,13 @@ export async function getBookedTimes(appointmentDate: string, category?: string)
         ne(appointments.status, "cancelado"),
       ),
     )
-  const booked = rows.map((row) => ({ category: getAppointmentCategory(row.service), time: row.appointmentTime }))
+  const booked = rows.map((row) => {
+    const bookedCategory = getAppointmentCategory(row.service)
+    return { category: bookedCategory, time: row.appointmentTime, durationMinutes: catalog.find((item) => item.name === bookedCategory)?.durationMinutes ?? 90 }
+  })
   if (!category) return []
-  return getScheduleForCategory(category).filter((time) => !isTimeAvailable(category, time, booked))
+  const categoryDuration = catalog.find((item) => item.name === category)?.durationMinutes ?? 90
+  return getScheduleForCategory(category).filter((time) => !isTimeAvailable(category, time, booked, categoryDuration))
 }
 
 export async function updateStatus(id: number, status: string) {
