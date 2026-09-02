@@ -466,15 +466,14 @@ export async function getAppointmentById(id: number) {
 export async function getWeeklyAvailability(category: string) {
   const days: Array<{ date: string; label: string; times: string[] }> = []
   const date = new Date()
-  while (days.length < 7) {
+  while (days.length < 6) {
     if (date.getDay() !== 0) {
       const dateKey = date.toISOString().slice(0, 10)
-      const times = await getBookedTimes(dateKey, category)
-      days.push({ date: dateKey, label: date.toLocaleDateString("es-UY", { weekday: "long", day: "numeric", month: "short" }), times })
+      days.push({ date: dateKey, label: date.toLocaleDateString("es-UY", { weekday: "long", day: "numeric", month: "short" }), times: [] })
     }
     date.setDate(date.getDate() + 1)
   }
-  return days
+  return Promise.all(days.map(async (day) => ({ ...day, times: await getBookedTimes(day.date, category) })))
 }
 
 export async function getBookedTimes(appointmentDate: string, category?: string) {

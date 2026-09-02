@@ -1,6 +1,6 @@
 "use client"
 
-import { useRef, useState, useTransition } from "react"
+import { useEffect, useRef, useState, useTransition } from "react"
 import { Download } from "lucide-react"
 import { getWeeklyAvailability } from "@/app/actions/appointments"
 import type { ServiceCatalog } from "@/lib/db/services"
@@ -26,13 +26,14 @@ export function AdminStories({ catalog }: { catalog: ServiceCatalog }) {
     link.click()
   }
 
-  return <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]"><div><p className="text-xs uppercase tracking-[0.35em] text-primary">Contenido para redes</p><h2 className="mt-2 font-serif text-4xl text-foreground">Story de horarios</h2><p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Generá una story minimalista con los próximos siete días laborables disponibles para un servicio.</p><div className="mt-8 flex flex-wrap items-end gap-3"><label className="grid gap-2 text-xs uppercase tracking-wider text-muted-foreground">Servicio<select value={category} onChange={(event) => { setCategory(event.target.value); setDays([]) }} className="min-w-56 rounded-md border border-input bg-card px-3 py-2 text-sm normal-case tracking-normal text-foreground">{catalog.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</select></label><button type="button" onClick={generate} disabled={pending || !category} className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">{pending ? "Generando…" : "Ver horarios"}</button></div></div><div className="flex flex-col items-center gap-4"><div className="w-full max-w-[270px] overflow-hidden rounded-lg border border-border bg-secondary shadow-sm"><canvas ref={canvasRef} width="1080" height="1920" className="block h-auto w-full" /><StoryCanvas canvas={canvasRef.current} category={category} days={days} /></div><button type="button" onClick={download} disabled={!days.length} className="inline-flex items-center gap-2 rounded-md border border-primary px-4 py-2 text-sm text-primary disabled:opacity-40"><Download data-icon="inline-start" />Descargar PNG</button></div></section>
+  return <section className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_360px]"><div><p className="text-xs uppercase tracking-[0.35em] text-primary">Contenido para redes</p><h2 className="mt-2 font-serif text-4xl text-foreground">Story de horarios</h2><p className="mt-3 max-w-xl text-sm leading-6 text-muted-foreground">Generá una story minimalista con los próximos seis días laborables disponibles para un servicio.</p><div className="mt-8 flex flex-wrap items-end gap-3"><label className="grid gap-2 text-xs uppercase tracking-wider text-muted-foreground">Servicio<select value={category} onChange={(event) => { setCategory(event.target.value); setDays([]) }} className="min-w-56 rounded-md border border-input bg-card px-3 py-2 text-sm normal-case tracking-normal text-foreground">{catalog.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</select></label><button type="button" onClick={generate} disabled={pending || !category} className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">{pending ? "Generando…" : "Ver horarios"}</button></div></div><div className="flex flex-col items-center gap-4"><div className="w-full max-w-[270px] overflow-hidden rounded-lg border border-border bg-secondary shadow-sm"><canvas ref={canvasRef} width="1080" height="1920" className="block h-auto w-full" /><StoryCanvas canvas={canvasRef.current} category={category} days={days} /></div><button type="button" onClick={download} disabled={!days.length} className="inline-flex items-center gap-2 rounded-md border border-primary px-4 py-2 text-sm text-primary disabled:opacity-40"><Download data-icon="inline-start" />Descargar PNG</button></div></section>
 }
 
 function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | null; category: string; days: Day[] }) {
-  if (canvas) {
+  useEffect(() => {
+    if (!canvas) return
     const context = canvas.getContext("2d")
-    if (context) {
+    if (!context) return
       const ivory = "#f7f3ec"
       const ink = "#302a26"
       const gold = "#a98452"
@@ -62,11 +63,10 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
         context.fillStyle = ink; context.font = "30px Arial"; context.fillText(day.times.length ? day.times.join("   ·   ") : "Sin disponibilidad", 360, y + 94)
       })
       context.fillStyle = sand; context.fillRect(78, 1742, 924, 2)
-      context.fillStyle = gold; context.font = "25px Arial"; context.letterSpacing = "3px"; context.fillText("RESERVAS POR WHATSAPP", 78, 1810)
+      context.fillStyle = gold; context.font = "25px Arial"; context.letterSpacing = "3px"; context.fillText("RESERVÁ ONLINE", 78, 1810)
       context.fillStyle = ink; context.font = "italic 30px Georgia"; context.letterSpacing = "0px"; context.fillText("Tu momento empieza acá.", 78, 1860)
       context.fillStyle = gold; context.font = "22px Arial"; context.fillText("@LUMA.CENTROESTETICO", 78, 1905)
-    }
-  }
+  }, [canvas, category, days])
   return null
 }
 
