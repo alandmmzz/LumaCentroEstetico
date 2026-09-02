@@ -33,12 +33,38 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
   if (canvas) {
     const context = canvas.getContext("2d")
     if (context) {
-      context.fillStyle = "#f7f3ec"; context.fillRect(0, 0, 1080, 1920)
-      context.fillStyle = "#9a7849"; context.font = "24px Arial"; context.fillText("LUMA CENTRO ESTÉTICO", 100, 150)
-      context.fillStyle = "#2f2924"; context.font = "64px Georgia"; context.fillText("Horarios disponibles", 100, 280)
-      context.font = "42px Georgia"; context.fillText(category, 100, 355)
-      days.forEach((day, index) => { const y = 490 + index * 170; context.fillStyle = "#9a7849"; context.font = "28px Arial"; context.fillText(day.label, 100, y); context.fillStyle = "#2f2924"; context.font = "34px Arial"; context.fillText(day.times.length ? day.times.join("   ·   ") : "Sin horarios disponibles", 100, y + 60); context.strokeStyle = "#ded4c6"; context.beginPath(); context.moveTo(100, y + 95); context.lineTo(980, y + 95); context.stroke() })
-      context.fillStyle = "#9a7849"; context.font = "26px Arial"; context.fillText("Reservas por WhatsApp", 100, 1760)
+      const ivory = "#f7f3ec"
+      const ink = "#302a26"
+      const gold = "#a98452"
+      const sand = "#e8ddcf"
+      const mist = "#efe8df"
+      context.clearRect(0, 0, 1080, 1920)
+      context.fillStyle = ivory
+      context.fillRect(0, 0, 1080, 1920)
+      context.fillStyle = sand
+      context.fillRect(0, 0, 1080, 18)
+      context.fillStyle = gold
+      context.beginPath(); context.arc(930, 130, 92, 0, Math.PI * 2); context.fill()
+      context.fillStyle = ivory
+      context.beginPath(); context.arc(930, 130, 62, 0, Math.PI * 2); context.fill()
+      context.fillStyle = gold; context.font = "26px Arial"; context.letterSpacing = "5px"; context.fillText("LUMA", 92, 130)
+      context.fillStyle = ink; context.font = "italic 84px Georgia"; context.fillText("Agenda", 88, 270)
+      context.font = "30px Arial"; context.letterSpacing = "8px"; context.fillText("DE LA SEMANA", 95, 325)
+      context.fillStyle = gold; context.font = "bold 38px Arial"; context.letterSpacing = "5px"; context.fillText(category.toUpperCase(), 95, 410)
+      context.fillStyle = ink; context.font = "24px Arial"; context.letterSpacing = "2px"; context.fillText("HORARIOS DISPONIBLES", 95, 455)
+      days.forEach((day, index) => {
+        const y = 530 + index * 182
+        context.fillStyle = mist
+        context.beginPath(); context.roundRect(78, y, 924, 142, 18); context.fill()
+        context.fillStyle = gold; context.font = "bold 24px Arial"; context.letterSpacing = "2px"; context.fillText(day.label.split(" ")[0].toUpperCase(), 112, y + 42)
+        context.fillStyle = ink; context.font = "52px Georgia"; context.fillText(day.label.match(/\\d+/)?.[0] ?? "", 110, y + 103)
+        context.fillStyle = gold; context.font = "bold 22px Arial"; context.letterSpacing = "1px"; context.fillText("TURNOS", 360, y + 42)
+        context.fillStyle = ink; context.font = "30px Arial"; context.fillText(day.times.length ? day.times.join("   ·   ") : "Sin disponibilidad", 360, y + 94)
+      })
+      context.fillStyle = sand; context.fillRect(78, 1742, 924, 2)
+      context.fillStyle = gold; context.font = "25px Arial"; context.letterSpacing = "3px"; context.fillText("RESERVAS POR WHATSAPP", 78, 1810)
+      context.fillStyle = ink; context.font = "italic 30px Georgia"; context.letterSpacing = "0px"; context.fillText("Tu momento empieza acá.", 78, 1860)
+      context.fillStyle = gold; context.font = "22px Arial"; context.fillText("@LUMA.CENTROESTETICO", 78, 1905)
     }
   }
   return null
