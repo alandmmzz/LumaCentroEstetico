@@ -5,12 +5,13 @@ import {
   assignStaff,
   updatePaymentManual,
   updateStatus,
+  updateAppointmentService,
 } from "@/app/actions/appointments"
 import { AdminNewAppointment } from "@/components/admin-new-appointment"
 import type { Appointment, Staff } from "@/lib/db/schema"
 import { SERVICE_CATEGORIES, formatUYU } from "@/lib/services"
 import type { ServiceCatalog } from "@/lib/db/services"
-import { Filter, Download, Plus, X } from "lucide-react"
+import { Filter, Download, Plus, X, Pencil } from "lucide-react"
 import { useEffect, useState, useTransition } from "react"
 
 const STATUS_OPTIONS = ["pendiente", "confirmado", "pago", "cancelado"]
@@ -80,6 +81,9 @@ export function AdminAppointments({
   )
   const [isPending, startTransition] = useTransition()
   const [filtersOpen, setFiltersOpen] = useState(false)
+  const [editingService, setEditingService] = useState<Appointment | null>(null)
+  const [editCategory, setEditCategory] = useState("")
+  const [editTreatmentIds, setEditTreatmentIds] = useState<string[]>([])
 
   const filtered = appointments.filter((a) =>
     (filter === "todos" || a.status === filter) &&
@@ -102,6 +106,14 @@ export function AdminAppointments({
   const visibleAppointments = sorted.slice((currentPage - 1) * pageSize, currentPage * pageSize)
 
   const monthlyIncome = filtered.reduce((total, appointment) => total + (appointment.status === "pago" ? (paymentAmounts[appointment.id] ?? appointment.paymentReceived ?? appointment.price) : 0), 0)
+
+  function openServiceEditor(appointment: Appointment) {
+    let selected: { category?: string; treatmentIds?: (string | number)[] } = {}
+    try { selected = JSON.parse(appointment.service) } catch { selected = { category: getServiceCategory(appointment.service), treatmentIds: [] } }
+    setEditingService(appointment)
+    setEditCategory(selected.category ?? "")
+    setEditTreatmentIds((selected.treatmentIds ?? []).map(String))
+  }
 
   function downloadSummary() {
     const rows = [["Cliente", "Fecha", "Hora", "Servicio", "Profesional", "Pago recibido"], ...sorted.map((a) => [a.name, formatDateShort(a.appointmentDate), a.appointmentTime, formatCatalogServiceLabel(a.service, catalog), staff.find((p) => p.id === a.staffId)?.name ?? "Sin asignar", String(paymentAmounts[a.id] ?? a.price)])]
@@ -181,7 +193,7 @@ export function AdminAppointments({
                     <div>{a.name}</div>
                     <div className="mt-1 text-xs font-normal text-muted-foreground">{a.phone}</div>
                   </td>
-                  <td className="max-w-xs px-4 py-3 text-foreground"><div>{formatCatalogServiceLabel(a.service, catalog)}</div><div className="mt-1 text-xs tabular-nums text-primary">Sugerido: {formatUYU(a.price)}</div></td>
+                  <td className="max-w-xs px-4 py-3 text-foreground"><div className="flex items-start gap-2"><span>{formatCatalogServiceLabel(a.service, catalog)}</span><button type="button" onClick={() => openServiceEditor(a)} className="mt-0.5 shrink-0 text-muted-foreground hover:text-primary" aria-label={`Editar servicio de ${a.name}`}><Pencil className="h-3.5 w-3.5" /></button></div><div className="mt-1 text-xs tabular-nums text-primary">Sugerido: {formatUYU(a.price)}</div></td>
                   <td className="px-4 py-3 text-muted-foreground">
                     <div>{formatDateShort(a.appointmentDate)}</div>
                     <div className="mt-1 text-xs">{a.appointmentTime} hs</div>
@@ -262,6 +274,10 @@ export function AdminAppointments({
           </table>
         </div>
       )}
+      {editingService && (() => {
+        const category = catalog.find((item) => item.name === editCategory)
+        return <div className="fixed inset-0 z-50 flex items-center justify-center bg-foreground/30 p-4" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) setEditingService(null) }}><div role="dialog" aria-modal="true" aria-labelledby="edit-service-title" className="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl border border-border bg-background p-6 shadow-xl"><div className="flex items-center justify-between gap-4"><h3 id="edit-service-title" className="font-serif text-2xl text-foreground">Editar servicio</h3><button type="button" onClick={() => setEditingService(null)} className="text-muted-foreground hover:text-foreground" aria-label="Cerrar"><X className="h-5 w-5" /></button></div><p className="mt-2 text-sm text-muted-foreground">{editingService.name}</p><label className="mt-5 block text-sm text-foreground" htmlFor="edit-category">Servicio</label><select id="edit-category" value={editCategory} onChange={(event) => { setEditCategory(event.target.value); setEditTreatmentIds([]) }} className="mt-2 w-full rounded-md border border-input bg-card px-3 py-2 text-sm text-foreground">{catalog.map((item) => <option key={item.id} value={item.name}>{item.name}</option>)}</select><fieldset className="mt-5"><legend className="text-sm text-foreground">Tratamientos</legend><div className="mt-2 grid gap-2">{category?.treatments.map((treatment) => <label key={treatment.id} className="flex items-center gap-2 text-sm text-foreground"><input type="checkbox" checked={editTreatmentIds.includes(String(treatment.id))} onChange={(event) => setEditTreatmentIds((current) => event.target.checked ? [...current, String(treatment.id)] : current.filter((id) => id !== String(treatment.id)))} />{treatment.name}</label>)}</div></fieldset><div className="mt-6 flex justify-end gap-2"><button type="button" onClick={() => setEditingService(null)} className="rounded-md border border-border px-4 py-2 text-sm text-foreground">Cancelar</button><button type="button" disabled={isPending || !category || editTreatmentIds.length === 0} onClick={() => startTransition(async () => { const result = await updateAppointmentService(editingService.id, JSON.stringify({ category: editCategory, treatmentIds: editTreatmentIds })); if (result.ok) setEditingService(null) })} className="rounded-md bg-primary px-4 py-2 text-sm text-primary-foreground disabled:opacity-50">Guardar</button></div></div></div>
+      })()}
       {filtered.length > pageSize && (
         <nav className="mt-4 flex items-center justify-between gap-4 text-sm text-muted-foreground" aria-label="Paginación de turnos">
           <span>Mostrando {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, sorted.length)} de {sorted.length}</span>
