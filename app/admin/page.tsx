@@ -5,6 +5,7 @@ import { AdminStaff } from "@/components/admin-staff"
 import { AdminTabs } from "@/components/admin-tabs"
 import { AdminCalendar } from "@/components/admin-calendar"
 import { AdminSchedules } from "@/components/admin-schedules"
+import { AdminStories } from "@/components/admin-stories"
 import Link from "next/link"
 import { isAdminAuthenticated } from "@/lib/admin-auth"
 import { AdminAccessForm } from "@/components/admin-access-form"
@@ -47,6 +48,7 @@ export default async function AdminPage() {
           servicios={<AdminServices catalog={serviceCatalog} />}
           personal={<AdminStaff staff={staffList} adminEmails={getAdminEmails()} />}
           horarios={<AdminSchedules schedules={scheduleList} catalog={serviceCatalog} />}
+          stories={<AdminStories catalog={serviceCatalog} />}
         />
       </div>
     </main>

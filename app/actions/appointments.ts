@@ -463,6 +463,20 @@ export async function getAppointmentById(id: number) {
   return row ?? null
 }
 
+export async function getWeeklyAvailability(category: string) {
+  const days: Array<{ date: string; label: string; times: string[] }> = []
+  const date = new Date()
+  while (days.length < 7) {
+    if (date.getDay() !== 0) {
+      const dateKey = date.toISOString().slice(0, 10)
+      const times = await getBookedTimes(dateKey, category)
+      days.push({ date: dateKey, label: date.toLocaleDateString("es-UY", { weekday: "long", day: "numeric", month: "short" }), times })
+    }
+    date.setDate(date.getDate() + 1)
+  }
+  return days
+}
+
 export async function getBookedTimes(appointmentDate: string, category?: string) {
   const catalog = await getAllServiceCatalog()
   const rows = await db
