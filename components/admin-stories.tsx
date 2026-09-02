@@ -34,6 +34,9 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
     if (!canvas) return
     const context = canvas.getContext("2d")
     if (!context) return
+    const background = new Image()
+    background.crossOrigin = "anonymous"
+    const render = () => {
       const ivory = "#f7f3ec"
       const ink = "#302a26"
       const gold = "#a98452"
@@ -42,6 +45,12 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
       context.clearRect(0, 0, 1080, 1920)
       context.fillStyle = ivory
       context.fillRect(0, 0, 1080, 1920)
+      context.globalAlpha = 0.13
+      context.drawImage(background, 0, 0, 1080, 1920)
+      context.globalAlpha = 0.35
+      context.fillStyle = ivory
+      context.fillRect(0, 0, 1080, 1920)
+      context.globalAlpha = 1
       context.fillStyle = sand
       context.fillRect(0, 0, 1080, 18)
       context.fillStyle = gold
@@ -66,6 +75,11 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
       context.fillStyle = gold; context.font = "25px Arial"; context.letterSpacing = "3px"; context.fillText("RESERVÁ ONLINE", 78, 1810)
       context.fillStyle = ink; context.font = "italic 30px Georgia"; context.letterSpacing = "0px"; context.fillText("Tu momento empieza acá.", 78, 1860)
       context.fillStyle = gold; context.font = "22px Arial"; context.fillText("@LUMA.CENTROESTETICO", 78, 1905)
+    }
+    background.onload = render
+    background.src = "/hero-luma.png"
+    if (background.complete) render()
+    return () => { background.onload = null }
   }, [canvas, category, days])
   return null
 }
