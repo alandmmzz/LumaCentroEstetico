@@ -49,7 +49,7 @@ export async function isAdminAuthenticated() {
 export { COOKIE_NAME }
 
 export function adminMagicLink(email: string) {
-  const expiresAt = Date.now() + 15 * 60 * 1000
+  const expiresAt = Date.now() + 30 * 60 * 1000
   return `/api/admin/magic-link?token=${encodeURIComponent(createAdminToken(email, expiresAt))}`
 }
 
@@ -61,7 +61,7 @@ export async function sendAdminMagicLink(email: string, origin: string) {
   const response = await fetch("https://api.resend.com/emails", {
     method: "POST",
     headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ from, to: email, subject: "Acceso al panel de LUMA", html: `<p>Solicitaste acceder al panel de administración de LUMA.</p><p><a href="${link}">Ingresar al panel</a></p><p>Este enlace vence en 15 minutos y es de un solo uso recomendado.</p>` }),
+    body: JSON.stringify({ from, to: email, subject: "Acceso al panel de LUMA", html: `<p>Solicitaste acceder al panel de administración de LUMA.</p><p><a href="${link}">Ingresar al panel</a></p><p>Este enlace vence en 30 minutos y es de un solo uso recomendado.</p>` }),
   })
   if (!response.ok) {
     console.error("[v0] Admin magic link email rejected by Resend", { status: response.status })
