@@ -113,11 +113,15 @@ export function AdminAppointments({
   const monthlyIncome = filtered.reduce((total, appointment) => total + (appointment.status === "pago" ? (paymentAmounts[appointment.id] ?? appointment.paymentReceived ?? appointment.price) : 0), 0)
 
   function openServiceEditor(appointment: Appointment) {
-    let selected: { category?: string; treatmentIds?: (string | number)[] } = {}
-    try { selected = JSON.parse(appointment.service) } catch { selected = { category: getServiceCategory(appointment.service), treatmentIds: [] } }
-    setEditingService(appointment)
-    setEditCategory(selected.category ?? "")
-    setEditTreatmentIds((selected.treatmentIds ?? []).map(String))
+  let selected: { category?: string; treatmentIds?: (string | number)[] } = {}
+  try { selected = JSON.parse(appointment.service) } catch { selected = { category: getServiceCategory(appointment.service), treatmentIds: [] } }
+  const category = catalog.find((item) => item.name === selected.category)
+  const normalize = (value: string | number) => String(value).toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+  const treatmentIds = (selected.treatmentIds ?? []).map(String)
+  const matchedIds = category?.treatments.filter((treatment) => treatmentIds.some((id) => String(treatment.id) === id || normalize(treatment.name) === normalize(id))).map((treatment) => String(treatment.id)) ?? []
+  setEditingService(appointment)
+  setEditCategory(selected.category ?? "")
+  setEditTreatmentIds(matchedIds)
   }
 
   function downloadSummary() {
