@@ -149,8 +149,8 @@ Aplicación funcional en evolución, utilizada para la operación de LUMA Centro
 
 ## Licencia
 
-Este proyecto es propietario de LUMA Centro Estético. El código puede ser visible con fines de portfolio y referencia técnica, pero no se autoriza su uso comercial, redistribución o reutilización sin permiso explícito.
+Este proyecto es propiedad de LUMA Centro Estético. El código puede ser visible con fines de portfolio y referencia técnica, pero no se autoriza su uso comercial, redistribución o reutilización sin permiso explícito.
 
 ## Autoría
 
-Desarrollado para LUMA Centro Estético por [Aland Marpe](https://github.com/alandmmzz).
+Desarrollado para LUMA Centro Estético por [Aland Martínez](https://github.com/alandmmzz).
