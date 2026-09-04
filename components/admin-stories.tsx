@@ -101,7 +101,7 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
         timeRows.filter((row) => row.length).forEach((row, rowIndex) => context.fillText(row.join("    ·    "), 390, y + 76 + rowIndex * 48))
       })
       context.fillStyle = blush; context.fillRect(80, 1718, 920, 3)
-      context.fillStyle = ink; context.font = "700 32px Jost, sans-serif"; context.letterSpacing = "5px"; context.fillText("RESERVÁ ONLINE", 610, 1810)
+      context.fillStyle = ink; context.font = "700 32px Jost, sans-serif"; context.letterSpacing = "5px"; context.fillText("RESERVÁ ONLINE", 610, 1775)
     }
     background.onload = render
     logo.onload = render
