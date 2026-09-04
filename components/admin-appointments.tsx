@@ -93,8 +93,13 @@ export function AdminAppointments({
   )
 
   const sorted = [...filtered].sort((a, b) => {
-    if (sort === "creacion") return b.id - a.id
-    return `${a.appointmentDate}T${a.appointmentTime}`.localeCompare(`${b.appointmentDate}T${b.appointmentTime}`)
+  if (sort === "creacion") return b.id - a.id
+  if (sort === "estado") {
+    const statusOrder = new Map(STATUS_OPTIONS.map((status, index) => [status, index]))
+    const statusDifference = (statusOrder.get(a.status) ?? STATUS_OPTIONS.length) - (statusOrder.get(b.status) ?? STATUS_OPTIONS.length)
+    if (statusDifference !== 0) return statusDifference
+  }
+  return `${a.appointmentDate}T${a.appointmentTime}`.localeCompare(`${b.appointmentDate}T${b.appointmentTime}`)
   })
 
   const pageCount = Math.max(1, Math.ceil(sorted.length / pageSize))
@@ -163,6 +168,7 @@ export function AdminAppointments({
         <label className="sr-only" htmlFor="sort-order">Ordenar por</label>
         <select id="sort-order" value={sort} onChange={(event) => setSort(event.target.value)} className="min-w-0 w-full rounded-md border border-input bg-card px-3 py-2 pr-10 text-sm text-foreground">
           <option value="fecha">Ordenar por fecha del turno</option>
+          <option value="estado">Ordenar por estado</option>
           <option value="creacion">Ordenar por creación (más reciente)</option>
         </select>
         </div>
