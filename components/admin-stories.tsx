@@ -48,11 +48,11 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
       context.clearRect(0, 0, 1080, 1920)
       context.fillStyle = ivory
       context.fillRect(0, 0, 1080, 1920)
-      context.globalAlpha = 0.2
+      context.globalAlpha = 0.34
       context.filter = "blur(10px) saturate(0.5)"
       context.drawImage(background, -24, -24, 1128, 1968)
       context.filter = "none"
-      context.globalAlpha = 0.42
+      context.globalAlpha = 0.34
       context.fillStyle = ivory
       context.fillRect(0, 0, 1080, 1920)
       context.globalAlpha = 1
@@ -67,7 +67,15 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
         context.drawImage(logo, (1080 - 250) / 2, 72, 250, 78)
         context.restore()
       }
-      context.fillStyle = ink; context.font = "500 98px Cormorant Garamond, serif"; context.fillText("HORARIOS", 72, 260)
+      context.save()
+      context.strokeStyle = rose
+      context.fillStyle = mist
+      context.lineWidth = 6
+      context.beginPath(); context.roundRect(72, 195, 58, 52, 9); context.fill(); context.stroke()
+      context.beginPath(); context.moveTo(72, 213); context.lineTo(130, 213); context.stroke()
+      context.beginPath(); context.moveTo(88, 185); context.lineTo(88, 207); context.moveTo(114, 185); context.lineTo(114, 207); context.stroke()
+      context.restore()
+      context.fillStyle = ink; context.font = "500 98px Cormorant Garamond, serif"; context.fillText("HORARIOS", 150, 260)
       context.fillStyle = rose; context.font = "italic 88px 'Brush Script MT', cursive"; context.letterSpacing = "1px"; context.fillText("disponibles", 82, 350)
       context.fillStyle = ink; context.font = "600 27px Jost, sans-serif"; context.letterSpacing = "7px"; context.fillText(category.toUpperCase(), 88, 420)
       days.forEach((day, index) => {
