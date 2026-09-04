@@ -87,7 +87,7 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
       context.fillStyle = blush; context.fillRect(80, 1718, 920, 3)
       context.fillStyle = rose; context.font = "italic 64px 'Brush Script MT', cursive"; context.letterSpacing = "0px"; context.fillText("Tu momento", 80, 1785)
       context.fillText("empieza acá.", 250, 1850)
-      context.fillStyle = ink; context.font = "600 24px Jost, sans-serif"; context.letterSpacing = "4px"; context.fillText("RESERVÁ ONLINE", 80, 1900)
+      context.fillStyle = ink; context.font = "600 24px Jost, sans-serif"; context.letterSpacing = "4px"; context.fillText("RESERVÁ ONLINE", 610, 1850)
     }
     background.onload = render
     logo.onload = render
