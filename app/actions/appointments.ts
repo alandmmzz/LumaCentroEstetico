@@ -363,9 +363,14 @@ export async function updateAppointmentService(id: number, service: string) {
   const category = catalog.find((item) => item.name === selection.category)
   const validIds = new Set(category?.treatments.map((treatment) => String(treatment.id)) ?? [])
   if (!category || !Array.isArray(selection.treatmentIds) || selection.treatmentIds.length === 0 || selection.treatmentIds.some((id) => !validIds.has(String(id)))) return { ok: false, error: "Seleccioná un servicio y al menos un tratamiento válido." }
-  await db.update(appointments).set({ service, price: catalogPrice(service, catalog) }).where(eq(appointments.id, id))
-  revalidatePath("/admin")
-  return { ok: true }
+  try {
+    await db.update(appointments).set({ service, price: catalogPrice(service, catalog) }).where(eq(appointments.id, id))
+    revalidatePath("/admin")
+    return { ok: true }
+  } catch (error) {
+    console.error("[v0] Error updating appointment service:", error)
+    return { ok: false, error: "No se pudo guardar el servicio." }
+  }
 }
 
 export async function updatePaymentManual(id: number, amount: number, status: string) {
