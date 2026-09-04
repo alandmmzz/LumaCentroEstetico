@@ -73,16 +73,14 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
         context.save()
         context.globalAlpha = 1
         context.globalCompositeOperation = "source-over"
-        context.filter = "brightness(0)"
-        context.drawImage(logo, (1080 - 250) / 2, 72, 250, 78)
         context.filter = "none"
+        context.drawImage(logo, (1080 - 250) / 2, 72, 250, 78)
         context.restore()
       }
       context.save()
       context.strokeStyle = ink
-      context.fillStyle = mist
       context.lineWidth = 6
-      context.beginPath(); context.roundRect(72, 195, 58, 52, 9); context.fill(); context.stroke()
+      context.beginPath(); context.roundRect(72, 195, 58, 52, 9); context.stroke()
       context.beginPath(); context.moveTo(72, 213); context.lineTo(130, 213); context.stroke()
       context.beginPath(); context.moveTo(88, 185); context.lineTo(88, 207); context.moveTo(114, 185); context.lineTo(114, 207); context.stroke()
       context.restore()
