@@ -35,7 +35,9 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
     const context = canvas.getContext("2d")
     if (!context) return
     const background = new Image()
+    const logo = new Image()
     background.crossOrigin = "anonymous"
+    logo.crossOrigin = "anonymous"
     const render = () => {
       const ivory = "#f5eee3"
       const ink = "#332c24"
@@ -58,7 +60,12 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
       context.beginPath(); context.ellipse(45, 280, 280, 390, -0.25, 0, Math.PI * 2); context.fill()
       context.fillStyle = sand
       context.beginPath(); context.ellipse(1050, 1650, 330, 420, 0.2, 0, Math.PI * 2); context.fill()
-      context.fillStyle = rose; context.font = "600 26px Jost, sans-serif"; context.letterSpacing = "6px"; context.fillText("LUMA", 92, 130)
+      if (logo.complete && logo.naturalWidth > 0) {
+        context.save()
+        context.globalCompositeOperation = "screen"
+        context.drawImage(logo, 82, 72, 250, 78)
+        context.restore()
+      }
       context.fillStyle = ink; context.font = "500 98px Cormorant Garamond, serif"; context.fillText("HORARIOS", 72, 260)
       context.fillStyle = rose; context.font = "italic 88px 'Brush Script MT', cursive"; context.letterSpacing = "1px"; context.fillText("disponibles", 82, 350)
       context.fillStyle = ink; context.font = "600 27px Jost, sans-serif"; context.letterSpacing = "7px"; context.fillText(category.toUpperCase(), 88, 420)
@@ -82,9 +89,11 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
       context.fillStyle = ink; context.font = "600 24px Jost, sans-serif"; context.letterSpacing = "4px"; context.fillText("RESERVÁ ONLINE", 80, 1900)
     }
     background.onload = render
+    logo.onload = render
     background.src = "/hero-luma.png"
-    if (background.complete) render()
-    return () => { background.onload = null }
+    logo.src = "/luma-logo.png"
+    if (background.complete || logo.complete) render()
+    return () => { background.onload = null; logo.onload = null }
   }, [canvas, category, days])
   return null
 }
