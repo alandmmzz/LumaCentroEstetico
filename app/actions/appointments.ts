@@ -361,10 +361,13 @@ export async function updateAppointmentService(id: number, service: string) {
   try { selection = JSON.parse(service) } catch { return { ok: false, error: "Servicio inválido." } }
   const catalog = await getAllServiceCatalog()
   const category = catalog.find((item) => item.name === selection.category)
-  const validIds = new Set(category?.treatments.map((treatment) => String(treatment.id)) ?? [])
-  if (!category || !Array.isArray(selection.treatmentIds) || selection.treatmentIds.length === 0 || selection.treatmentIds.some((id) => !validIds.has(String(id)))) return { ok: false, error: "Seleccioná un servicio y al menos un tratamiento válido." }
+  const normalize = (value: string | number) => String(value).toLowerCase().normalize("NFD").replace(/[\\u0300-\\u036f]/g, "").replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")
+  const selectedTreatments = Array.isArray(selection.treatmentIds) ? selection.treatmentIds : []
+  const matchedTreatments = selectedTreatments.map((value) => category?.treatments.find((treatment) => String(treatment.id) === String(value) || normalize(treatment.name) === normalize(value))).filter((treatment): treatment is NonNullable<typeof treatment> => Boolean(treatment))
+  if (!category || selectedTreatments.length === 0 || matchedTreatments.length !== selectedTreatments.length) return { ok: false, error: "Seleccioná un servicio y al menos un tratamiento válido." }
+  const canonicalService = JSON.stringify({ category: category.name, treatmentIds: matchedTreatments.map((treatment) => String(treatment.id)) })
   try {
-    await db.update(appointments).set({ service, price: catalogPrice(service, catalog) }).where(eq(appointments.id, id))
+    await db.update(appointments).set({ service: canonicalService, price: catalogPrice(canonicalService, catalog) }).where(eq(appointments.id, id))
     revalidatePath("/admin")
     return { ok: true }
   } catch (error) {
