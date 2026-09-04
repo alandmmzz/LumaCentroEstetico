@@ -80,11 +80,11 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
       context.save()
       context.strokeStyle = ink
       context.lineWidth = 6
-      context.beginPath(); context.roundRect(68, 188, 70, 64, 10); context.stroke()
-      context.beginPath(); context.moveTo(68, 210); context.lineTo(138, 210); context.stroke()
-      context.beginPath(); context.moveTo(87, 176); context.lineTo(87, 202); context.moveTo(119, 176); context.lineTo(119, 202); context.stroke()
+      context.beginPath(); context.roundRect(68, 198, 70, 64, 10); context.stroke()
+      context.beginPath(); context.moveTo(68, 220); context.lineTo(138, 220); context.stroke()
+      context.beginPath(); context.moveTo(87, 186); context.lineTo(87, 212); context.moveTo(119, 186); context.lineTo(119, 212); context.stroke()
       context.restore()
-      context.fillStyle = ink; context.font = "500 98px Cormorant Garamond, serif"; context.fillText("HORARIOS", 150, 260)
+      context.fillStyle = ink; context.font = "500 98px Cormorant Garamond, serif"; context.fillText("HORARIOS", 166, 260)
       context.fillStyle = rose; context.font = "italic 88px 'Brush Script MT', cursive"; context.letterSpacing = "1px"; context.fillText("disponibles", 82, 350)
       context.fillStyle = ink; context.font = "600 27px Jost, sans-serif"; context.letterSpacing = "7px"; context.fillText(category.toUpperCase(), 88, 420)
       days.forEach((day, index) => {
