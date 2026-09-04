@@ -37,20 +37,20 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
     const background = new Image()
     background.crossOrigin = "anonymous"
     const render = () => {
-      const ivory = "#fbf4ef"
-      const ink = "#302a2a"
-      const rose = "#c9858f"
-      const blush = "#efd5d1"
-      const sand = "#eadbd3"
-      const mist = "#fffaf7"
+      const ivory = "#f5eee3"
+      const ink = "#332c24"
+      const rose = "#a88752"
+      const blush = "#ddcfb8"
+      const sand = "#e5d8c3"
+      const mist = "#fbf7f0"
       context.clearRect(0, 0, 1080, 1920)
       context.fillStyle = ivory
       context.fillRect(0, 0, 1080, 1920)
-      context.globalAlpha = 0.12
-      context.filter = "blur(8px) saturate(0.55)"
+      context.globalAlpha = 0.2
+      context.filter = "blur(10px) saturate(0.5)"
       context.drawImage(background, -24, -24, 1128, 1968)
       context.filter = "none"
-      context.globalAlpha = 0.48
+      context.globalAlpha = 0.42
       context.fillStyle = ivory
       context.fillRect(0, 0, 1080, 1920)
       context.globalAlpha = 1
@@ -63,16 +63,16 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
       context.fillStyle = rose; context.font = "italic 92px 'Brush Script MT', cursive"; context.letterSpacing = "1px"; context.fillText("disponibles", 92, 365)
       context.fillStyle = ink; context.font = "600 28px Jost, sans-serif"; context.letterSpacing = "6px"; context.fillText(category.toUpperCase(), 98, 435)
       days.forEach((day, index) => {
-        const y = 510 + index * 190
+        const y = 495 + index * 194
         context.fillStyle = mist
         context.strokeStyle = blush
         context.lineWidth = 3
-        context.beginPath(); context.roundRect(80, y, 920, 156, 24); context.fill(); context.stroke()
+        context.beginPath(); context.roundRect(64, y, 952, 166, 26); context.fill(); context.stroke()
         const weekday = day.label.split(" ")[0].slice(0, 3).toUpperCase()
-        context.fillStyle = rose; context.font = "700 34px Jost, sans-serif"; context.letterSpacing = "4px"; context.fillText(weekday, 120, y + 52)
-        context.fillStyle = ink; context.font = "500 68px Cormorant Garamond, serif"; context.fillText(day.label.match(/\\d+/)?.[0] ?? "", 118, y + 122)
-        context.fillStyle = rose; context.font = "600 23px Jost, sans-serif"; context.letterSpacing = "2px"; context.fillText("DISPONIBLE", 390, y + 48)
-        context.fillStyle = ink; context.font = "500 34px Cormorant Garamond, serif"; context.fillText(day.times.length ? day.times.join("   ·   ") : "Sin disponibilidad", 390, y + 100)
+        context.fillStyle = rose; context.font = "700 48px Jost, sans-serif"; context.letterSpacing = "5px"; context.fillText(weekday, 105, y + 62)
+        context.fillStyle = ink; context.font = "500 82px Cormorant Garamond, serif"; context.fillText(day.label.match(/\d+/)?.[0] ?? "", 102, y + 138)
+        context.fillStyle = rose; context.font = "700 26px Jost, sans-serif"; context.letterSpacing = "3px"; context.fillText("DISPONIBLE", 390, y + 55)
+        context.fillStyle = ink; context.font = "500 40px Cormorant Garamond, serif"; context.fillText(day.times.length ? day.times.join("   ·   ") : "Sin disponibilidad", 390, y + 112)
       })
       context.fillStyle = blush; context.fillRect(80, 1718, 920, 3)
       context.fillStyle = rose; context.font = "italic 58px 'Brush Script MT', cursive"; context.letterSpacing = "0px"; context.fillText("Tu momento", 80, 1795)
