@@ -62,8 +62,9 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
       context.beginPath(); context.ellipse(1050, 1650, 330, 420, 0.2, 0, Math.PI * 2); context.fill()
       if (logo.complete && logo.naturalWidth > 0) {
         context.save()
-        context.globalCompositeOperation = "screen"
-        context.drawImage(logo, 82, 72, 250, 78)
+        context.globalAlpha = 1
+        context.globalCompositeOperation = "source-over"
+        context.drawImage(logo, (1080 - 250) / 2, 72, 250, 78)
         context.restore()
       }
       context.fillStyle = ink; context.font = "500 98px Cormorant Garamond, serif"; context.fillText("HORARIOS", 72, 260)
