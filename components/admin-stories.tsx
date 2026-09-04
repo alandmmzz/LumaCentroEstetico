@@ -79,7 +79,7 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
         context.restore()
       }
       context.save()
-      context.strokeStyle = rose
+      context.strokeStyle = ink
       context.fillStyle = mist
       context.lineWidth = 6
       context.beginPath(); context.roundRect(72, 195, 58, 52, 9); context.fill(); context.stroke()
