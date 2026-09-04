@@ -64,7 +64,9 @@ function StoryCanvas({ canvas, category, days }: { canvas: HTMLCanvasElement | n
         context.save()
         context.globalAlpha = 1
         context.globalCompositeOperation = "source-over"
+        context.filter = "brightness(0)"
         context.drawImage(logo, (1080 - 250) / 2, 72, 250, 78)
+        context.filter = "none"
         context.restore()
       }
       context.save()
