@@ -17,8 +17,8 @@ export function getScheduleForCategory(category: string): string[] {
 }
 
 function toMinutes(time: string) {
-  const [hours, minutes] = time.split(":").map(Number)
-  return hours * 60 + minutes
+  const [hours, minutes] = time.trim().split(":").map(Number)
+  return hours * 60 + (minutes || 0)
 }
 
 export function intervalsOverlap(startA: number, endA: number, startB: number, endB: number) {
@@ -28,7 +28,8 @@ export function intervalsOverlap(startA: number, endA: number, startB: number, e
 export function isTimeAvailable(category: string, time: string, booked: Array<{ category: string; time: string; durationMinutes: number }>, durationMinutes: number) {
   const start = toMinutes(time)
   const end = start + durationMinutes
-  const sameCategoryOverlaps = booked.some((item) => item.category === category && intervalsOverlap(start, end, toMinutes(item.time), toMinutes(item.time) + item.durationMinutes))
+  const normalizedCategory = category.trim().toLowerCase()
+  const sameCategoryOverlaps = booked.some((item) => item.category.trim().toLowerCase() === normalizedCategory && intervalsOverlap(start, end, toMinutes(item.time), toMinutes(item.time) + item.durationMinutes))
   if (category !== "Promos" && sameCategoryOverlaps) return false
   const points = new Set([start, end])
   for (const item of booked) {
@@ -43,7 +44,7 @@ export function isTimeAvailable(category: string, time: string, booked: Array<{ 
   return !sorted.slice(0, -1).some((point, index) => {
     const next = sorted[index + 1]
     const concurrent = booked.filter((item) => intervalsOverlap(point, next, toMinutes(item.time), toMinutes(item.time) + item.durationMinutes)).length
-    return category === "Promos" ? concurrent >= 2 && booked.filter((item) => item.category === "Promos" && intervalsOverlap(point, next, toMinutes(item.time), toMinutes(item.time) + item.durationMinutes)).length >= 2 : concurrent >= 2
+    return category === "Promos" ? concurrent >= 2 && booked.filter((item) => item.category.trim().toLowerCase() === "promos" && intervalsOverlap(point, next, toMinutes(item.time), toMinutes(item.time) + item.durationMinutes)).length >= 2 : concurrent >= 2
   })
 }
 

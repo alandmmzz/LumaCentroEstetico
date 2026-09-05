@@ -14,9 +14,9 @@ export type BookingResult = { ok: boolean; error?: string; id?: number }
 function getAppointmentCategory(service: string) {
   try {
     const parsed = JSON.parse(service) as { category?: string }
-    return parsed.category?.trim() ?? service.trim()
+    return (parsed.category ?? service).trim().toLowerCase()
   } catch {
-    return service.trim()
+    return service.trim().toLowerCase()
   }
 }
 
