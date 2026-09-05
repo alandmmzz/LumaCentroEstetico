@@ -29,8 +29,9 @@ export function isTimeAvailable(category: string, time: string, booked: Array<{ 
   const start = toMinutes(time)
   const end = start + durationMinutes
   const normalizedCategory = category.trim().toLowerCase()
+  const isPromos = normalizedCategory === "promos"
   const sameCategoryOverlaps = booked.some((item) => item.category.trim().toLowerCase() === normalizedCategory && intervalsOverlap(start, end, toMinutes(item.time), toMinutes(item.time) + item.durationMinutes))
-  if (category !== "Promos" && sameCategoryOverlaps) return false
+  if (!isPromos && sameCategoryOverlaps) return false
   const points = new Set([start, end])
   for (const item of booked) {
     const itemStart = toMinutes(item.time)
@@ -44,7 +45,7 @@ export function isTimeAvailable(category: string, time: string, booked: Array<{ 
   return !sorted.slice(0, -1).some((point, index) => {
     const next = sorted[index + 1]
     const concurrent = booked.filter((item) => intervalsOverlap(point, next, toMinutes(item.time), toMinutes(item.time) + item.durationMinutes)).length
-    return category === "Promos" ? concurrent >= 2 && booked.filter((item) => item.category.trim().toLowerCase() === "promos" && intervalsOverlap(point, next, toMinutes(item.time), toMinutes(item.time) + item.durationMinutes)).length >= 2 : concurrent >= 2
+    return isPromos ? concurrent >= 2 && booked.filter((item) => item.category.trim().toLowerCase() === "promos" && intervalsOverlap(point, next, toMinutes(item.time), toMinutes(item.time) + item.durationMinutes)).length >= 2 : concurrent >= 2
   })
 }
 
