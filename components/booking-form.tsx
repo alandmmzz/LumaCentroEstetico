@@ -39,7 +39,7 @@ export function BookingForm({ catalog }: { catalog?: BookingCatalog }) {
       setIsLoadingTimes(false)
       return
     }
-    Promise.all([getBookedTimes(selectedDate, selectedCategory), getAvailableSchedule(selectedCategory)]).then(([booked, schedule]) => { setBookedTimes(booked); setAvailableSchedule(schedule) }).finally(() => setIsLoadingTimes(false))
+    Promise.all([getBookedTimes(selectedDate, selectedCategory), getAvailableSchedule(selectedCategory)]).then(([available, schedule]) => { setAvailableSchedule(schedule); setBookedTimes(schedule.filter((time) => !available.includes(time))) }).finally(() => setIsLoadingTimes(false))
   }, [selectedDate, selectedCategory])
 
   const bookingCategories = catalog?.map((item) => ({ ...item, treatments: item.treatments.map((treatment) => ({ ...treatment, id: String(treatment.id) })) })) ?? SERVICE_CATEGORIES

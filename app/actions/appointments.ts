@@ -14,9 +14,9 @@ export type BookingResult = { ok: boolean; error?: string; id?: number }
 function getAppointmentCategory(service: string) {
   try {
     const parsed = JSON.parse(service) as { category?: string }
-    return parsed.category?.trim() ?? service.trim()
+    return (parsed.category ?? service).trim().toLowerCase()
   } catch {
-    return service.trim()
+    return service.trim().toLowerCase()
   }
 }
 
@@ -497,7 +497,7 @@ export async function getBookedTimes(appointmentDate: string, category?: string)
     )
   const booked = rows.map((row) => {
     const bookedCategory = getAppointmentCategory(row.service)
-    return { category: bookedCategory, time: row.appointmentTime, durationMinutes: catalog.find((item) => item.name === bookedCategory)?.durationMinutes ?? 90 }
+    return { category: bookedCategory, time: row.appointmentTime, durationMinutes: catalog.find((item) => item.name.trim().toLowerCase() === bookedCategory)?.durationMinutes ?? 90 }
   })
   if (!category) return []
   const categoryDuration = catalog.find((item) => item.name === category)?.durationMinutes ?? 90
